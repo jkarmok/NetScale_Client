@@ -1,0 +1,143 @@
+ 
+ 
+.beating_heart_label {
+    flex-grow: 1;
+    position: relative; 
+    font-size: 44px;
+    color: whitesmoke;
+}
+.beating_heart_value {
+    flex-grow: 1;
+    position: relative; 
+    font-size: 44px;
+    color: whitesmoke;
+}
+.right_block {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    width: auto;
+    height: auto;
+    flex-direction: row;
+}
+.bottom_block{
+    justify-content: flex-end; 
+    height: 100%;
+    margin: 0;
+}
+.jump_button{
+    -unity-text-align: middle-center;
+    width: 100%;
+    height: 50%;
+    margin: 0;
+    background-color: rgba(154,187,255,0.05);
+}
+
+.entities-stats-container {
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 12px;
+    border-radius: 6px;
+    margin: 8px;
+    min-width: 200px;
+    border: 1px solid #333;
+    width: 20%;
+    position: absolute;
+}
+
+.header-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 6px;
+}
+
+.header-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.status-normal {
+    background-color: #4CAF50; /* Зеленый - норма */
+}
+
+.status-warning {
+    background-color: #FFC107; /* Желтый - предупреждение */
+    animation: pulse-warning 2s infinite;
+}
+
+.status-critical {
+    background-color: #F44336; /* Красный - критично */
+    animation: pulse-critical 1s infinite;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-value {
+    font-size: 11px;
+    font-family: 'Consolas', monospace;
+    color: #e0e0e0;
+}
+
+.text-normal {
+    color: #4CAF50 !important;
+    font-weight: bold;
+}
+
+.text-warning {
+    color: #FFC107 !important;
+    font-weight: bold;
+}
+
+.text-critical {
+    color: #F44336 !important;
+    font-weight: bold;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes pulse-critical {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* Стили для статистики в секунду */
+.stat-value-ps {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: 10px;
+    color: #cccccc;
+}
+
+.stats-grid {
+    flex-direction: column;
+    margin-bottom: 2px;
+}
+
+.header-row {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #444444;
+}
+
+.header-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+}

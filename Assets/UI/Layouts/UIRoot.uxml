@@ -1,0 +1,37 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:Template name="Hud" src="project://database/Assets/UI/Layouts/Hud.uxml?fileID=9197481963319205126&amp;guid=f8d08caadd070ea4999c066530d857fc&amp;type=3#Hud" />
+    <Style src="project://database/Assets/UI/Uss/LoginStyles.tss?fileID=-4733365628477956816&amp;guid=b08c5c869ef7eb6438ef27e2e4f22375&amp;type=3#LoginStyles" />
+    <Style src="project://database/Assets/UI/Uss/ErrorStyles.uss?fileID=7433441132597879392&amp;guid=2549f14722ad49bea530f8fafd2798ed&amp;type=3#ErrorStyles" />
+    <engine:VisualElement name="HudView" style="flex-grow: 1; display: none; width: 100%; height: 100%;">
+        <engine:Instance template="Hud" style="width: 100%; height: 100%;" />
+    </engine:VisualElement>
+    <engine:VisualElement name="LoginView" class="login-view">
+        <engine:VisualElement class="login-background" />
+        <engine:VisualElement class="login-container">
+            <engine:VisualElement class="logo-container">
+                <engine:Label text="SUPER GAME" class="game-title" />
+                <engine:Label text="DEVELOPERS" class="game-subtitle" />
+            </engine:VisualElement>
+            <engine:VisualElement class="connection-card">
+                <engine:Label text="CONNECT TO SERVER" class="card-title" />
+                <engine:VisualElement class="input-container">
+                    <engine:Label text="Server Address" class="input-label" />
+                    <engine:TextField name="ConnectionInput" value="192.168.3.4:7777" class="server-input" />
+                </engine:VisualElement>
+                <engine:VisualElement name="ErrorContainer" class="error-container" />
+                <engine:Button name="ConnectionButton" text="CONNECT" class="connect-button" />
+                <engine:VisualElement class="status-container">
+                    <engine:VisualElement class="status-dot" />
+                    <engine:Label text="Ready to connect" class="status-text" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:Label text="Version 1.0.0" class="version-text" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+    <engine:VisualElement name="SplashView" style="flex-grow: 1; display: none; visibility: hidden; width: 100%; height: 100%; margin: 0;">
+        <engine:Label text="SUPER DEVELOPERS" style="unity-text-align: middle-center; font-size: 8%; visibility: visible; margin: 0; color: rgb(5, 255, 0); -unity-text-align: middle-center; text-overflow: clip; white-space: normal; justify-content: space-around; align-self: center; align-content: center; background-color: rgb(0, 0, 0); width: 100%; height: 100%; align-items: center; padding: 5%;" />
+    </engine:VisualElement>
+    <engine:VisualElement name="LoadingView" style="flex-grow: 1; display: none; justify-content: center; align-items: center; width: 100%; height: 100%;">
+        <engine:Label text="Loading..." style="unity-text-align: middle-center; font-size: 5%; color: white;" />
+    </engine:VisualElement>
+</engine:UXML>

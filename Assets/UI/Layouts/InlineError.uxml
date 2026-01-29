@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="inline-error">
+        <ui:VisualElement class="error-icon">
+            <ui:Label text="!" style="-unity-text-align: middle-center; color: white; font-size: 12px; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:Label name="ErrorText" class="error-text" text="Error message" />
+    </ui:VisualElement>
+</ui:UXML>

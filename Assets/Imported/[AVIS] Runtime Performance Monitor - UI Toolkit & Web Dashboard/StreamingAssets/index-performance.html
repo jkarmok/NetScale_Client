@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unity Performance Monitor</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1a1a1a; 
+            color: white; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+        }
+        .metric { 
+            background: #2a2a2a; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .graph-container {
+            position: relative;
+            height: 150px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+        }
+        .graph-labels {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
+            color: #888;
+        }
+        .fps-good { color: #4CAF50; }
+        .fps-ok { color: #FFC107; }
+        .fps-bad { color: #F44336; }
+        .status { 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+            text-align: center;
+            font-weight: bold;
+        }
+        .connected { background: #2E7D32; }
+        .disconnected { background: #C62828; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .metric-card .label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .device-info {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #9C27B0;
+        }
+        .device-info-line {
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .device-info-line:last-child {
+            border-bottom: none;
+        }
+        .settings-panel {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #FF5722;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .settings-row input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+        }
+        .settings-row button {
+            padding: 8px 16px;
+            background: #007acc;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .settings-row button:hover {
+            background: #005a9e;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .preset-item {
+            position: relative;
+            display: inline-block;
+        }
+        .preset-btn {
+            padding: 6px 28px 6px 12px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background: #444;
+            color: white;
+            border-color: #777;
+        }
+        .preset-btn.active {
+            background: #007acc;
+            color: white;
+            border-color: #007acc;
+        }
+        .preset-edit {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+        .preset-edit:hover {
+            color: #fff;
+        }
+        .preset-btn.active .preset-edit {
+            color: #fff;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 24px;
+        }
+        .modal-close:hover {
+            color: #fff;
+        }
+        .modal-body input {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+        .modal-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-save {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #45a049;
+        }
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #da190b;
+        }
+        .btn-cancel {
+            background: #666;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background: #555;
+        }
+        /* Новые стили для статистики */
+        .stats-panel {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #FF9800;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat-item {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .stat-subvalue {
+            font-size: 11px;
+            color: #888;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Unity Performance Monitor</h1>
+        
+        <div class="settings-panel">
+            <h2>⚙️ Server Settings</h2>
+            <div class="settings-row">
+                <input type="text" id="serverAddress" placeholder="ws://localhost:8080" />
+                <button onclick="monitor.updateServerAddress()">Connect</button>
+            </div>
+            <div class="preset-buttons" id="presetButtons"></div>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">FPS</div>
+                <div id="fpsValue" class="value fps-good">--</div>
+                <div id="fpsStatus" class="label">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Frame Time</div>
+                <div id="frameTimeValue" class="value">-- ms</div>
+                <div class="label">Target: 16.67ms (60FPS)</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Memory Alloc</div>
+                <div id="memoryValue" class="value">-- KB/frame</div>
+                <div class="label">Per Frame</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Total Memory</div>
+                <div id="totalMemoryValue" class="value">-- MB</div>
+                <div class="label">Used</div>
+            </div>
+        </div>
+
+        <!-- Новая панель статистики -->
+        <div class="stats-panel">
+            <h2>📊 Performance Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">FPS (1% Low)</div>
+                    <div id="fps1Percent" class="stat-value">--</div>
+                    <div class="stat-subvalue">Min: <span id="fpsMin">--</span> | Avg: <span id="fpsAvg">--</span> | Max: <span id="fpsMax">--</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Frame Time (ms)</div>
+                    <div id="frameTimeCurrent" class="stat-value">--</div>
+                    <div class="stat-subvalue">Min: <span id="frameTimeMin">--</span> | Avg: <span id="frameTimeAvg">--</span> | Max: <span id="frameTimeMax">--</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Memory Alloc (MB)</div>
+                    <div id="memoryCurrent" class="stat-value">--</div>
+                    <div class="stat-subvalue">Min: <span id="memoryMin">--</span> | Avg: <span id="memoryAvg">--</span> | Max: <span id="memoryMax">--</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Session</div>
+                    <div id="sessionTime" class="stat-value">00:00</div>
+                    <div class="stat-subvalue">Samples: <span id="sampleCount">0</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <h2>Frame Time (ms)</h2>
+                <div class="metric-value" id="currentFrameTime">--</div>
+            </div>
+            <div class="graph-container">
+                <canvas id="frameTimeGraph"></canvas>
+                <div class="graph-labels">
+                    <span id="frameTimeGraphMax">0ms</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <h2>FPS</h2>
+                <div class="metric-value" id="currentFPS">--</div>
+            </div>
+            <div class="graph-container">
+                <canvas id="fpsGraph"></canvas>
+                <div class="graph-labels">
+                    <span id="fpsGraphMax">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <h2>Memory Allocations (MB/frame)</h2>
+                <div class="metric-value" id="currentMemory">--</div>
+            </div>
+            <div class="graph-container">
+                <canvas id="memoryGraph"></canvas>
+                <div class="graph-labels">
+                    <span id="memoryGraphMax">0MB</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="device-info">
+            <h2>📱 Device Information</h2>
+            <div id="deviceInfo">
+                <div class="device-info-line">Connecting to device information...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="presetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Edit Preset</h3>
+                <button class="modal-close" onclick="monitor.closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="presetLabel" placeholder="Label (e.g., localhost:8080)" />
+                <input type="text" id="presetAddress" placeholder="Address (e.g., ws://localhost:8080)" />
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-delete" id="deleteBtn" onclick="monitor.deletePreset()">Delete</button>
+                <button class="btn-cancel" onclick="monitor.closeModal()">Cancel</button>
+                <button class="btn-save" onclick="monitor.savePreset()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PerformanceMonitor {
+            constructor() {
+                this.ws = null;
+                this.deviceWs = null;
+                this.isConnected = false;
+                this.deviceConnected = false;
+                this.serverAddress = this.loadServerAddress();
+                this.presets = this.loadPresets();
+                this.editingPresetIndex = -1;
+                
+                this.historySize = 200;
+                this.frameTimeHistory = new Array(this.historySize).fill(0);
+                this.fpsHistory = new Array(this.historySize).fill(0);
+                this.memoryHistory = new Array(this.historySize).fill(0);
+                
+                // Статистика
+                this.stats = {
+                    fps: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] },
+                    frameTime: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] },
+                    memory: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] }
+                };
+                
+                this.sessionStartTime = Date.now();
+                
+                this.frameTimeCanvas = document.getElementById('frameTimeGraph');
+                this.fpsCanvas = document.getElementById('fpsGraph');
+                this.memoryCanvas = document.getElementById('memoryGraph');
+                
+                this.frameTimeCtx = this.frameTimeCanvas.getContext('2d');
+                this.fpsCtx = this.fpsCanvas.getContext('2d');
+                this.memoryCtx = this.memoryCanvas.getContext('2d');
+                
+                this.initCanvas();
+                
+                document.getElementById('serverAddress').value = this.serverAddress;
+                this.renderPresets();
+                
+                this.connect();
+                this.connectDeviceInfo();
+                
+                window.addEventListener('resize', () => this.initCanvas());
+            }
+
+            loadPresets() {
+                const saved = this.getCookie('unityPresets');
+                if (saved) {
+                    try {
+                        return JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Error loading presets:', e);
+                    }
+                }
+                return [
+                    { label: 'localhost:8080', address: 'ws://localhost:8080' },
+                    { label: 'localhost:9000', address: 'ws://localhost:9000' },
+                    { label: '127.0.0.1:8080', address: 'ws://127.0.0.1:8080' },
+                    { label: '192.168.1.x:8080', address: 'ws://192.168.1.100:8080' }
+                ];
+            }
+
+            savePresets() {
+                this.setCookie('unityPresets', JSON.stringify(this.presets), 365);
+            }
+
+            renderPresets() {
+                const container = document.getElementById('presetButtons');
+                container.innerHTML = '';
+                
+                this.presets.forEach((preset, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'preset-item';
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    if (preset.address === this.serverAddress) {
+                        btn.classList.add('active');
+                    }
+                    btn.textContent = preset.label;
+                    btn.onclick = () => this.setPreset(preset.address);
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'preset-edit';
+                    editBtn.innerHTML = '✎';
+                    editBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.editPreset(index);
+                    };
+                    
+                    btn.appendChild(editBtn);
+                    item.appendChild(btn);
+                    container.appendChild(item);
+                });
+                
+                const addBtn = document.createElement('button');
+                addBtn.className = 'preset-btn';
+                addBtn.textContent = '+ Add';
+                addBtn.onclick = () => this.addPreset();
+                container.appendChild(addBtn);
+            }
+
+            editPreset(index) {
+                this.editingPresetIndex = index;
+                const preset = this.presets[index];
+                
+                document.getElementById('modalTitle').textContent = 'Edit Preset';
+                document.getElementById('presetLabel').value = preset.label;
+                document.getElementById('presetAddress').value = preset.address;
+                document.getElementById('deleteBtn').style.display = 'block';
+                document.getElementById('presetModal').classList.add('show');
+            }
+
+            addPreset() {
+                this.editingPresetIndex = -1;
+                
+                document.getElementById('modalTitle').textContent = 'Add Preset';
+                document.getElementById('presetLabel').value = '';
+                document.getElementById('presetAddress').value = '';
+                document.getElementById('deleteBtn').style.display = 'none';
+                document.getElementById('presetModal').classList.add('show');
+            }
+
+            savePreset() {
+                const label = document.getElementById('presetLabel').value.trim();
+                let address = document.getElementById('presetAddress').value.trim();
+                
+                if (!label || !address) {
+                    alert('Please fill in both fields');
+                    return;
+                }
+                
+                if (!address.startsWith('ws://') && !address.startsWith('wss://')) {
+                    address = 'ws://' + address;
+                }
+                
+                if (this.editingPresetIndex >= 0) {
+                    this.presets[this.editingPresetIndex] = { label, address };
+                } else {
+                    this.presets.push({ label, address });
+                }
+                
+                this.savePresets();
+                this.renderPresets();
+                this.closeModal();
+            }
+
+            deletePreset() {
+                if (this.editingPresetIndex >= 0) {
+                    if (confirm('Delete this preset?')) {
+                        this.presets.splice(this.editingPresetIndex, 1);
+                        this.savePresets();
+                        this.renderPresets();
+                        this.closeModal();
+                    }
+                }
+            }
+
+            closeModal() {
+                document.getElementById('presetModal').classList.remove('show');
+            }
+
+            loadServerAddress() {
+                const saved = this.getCookie('unityServerAddress');
+                return saved || 'ws://localhost:8080';
+            }
+
+            saveServerAddress(address) {
+                this.setCookie('unityServerAddress', address, 365);
+            }
+
+            setCookie(name, value, days) {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+                document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+            }
+
+            getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            updateServerAddress() {
+                const input = document.getElementById('serverAddress');
+                let address = input.value.trim();
+                
+                if (!address.startsWith('ws://') && !address.startsWith('wss://')) {
+                    address = 'ws://' + address;
+                }
+                
+                this.serverAddress = address;
+                this.saveServerAddress(address);
+                input.value = address;
+                this.renderPresets();
+                
+                this.disconnect();
+                this.connect();
+                this.connectDeviceInfo();
+            }
+
+            setPreset(address) {
+                document.getElementById('serverAddress').value = address;
+                this.updateServerAddress();
+            }
+
+            disconnect() {
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                if (this.deviceWs) {
+                    this.deviceWs.close();
+                    this.deviceWs = null;
+                }
+                this.isConnected = false;
+                this.deviceConnected = false;
+                // Сброс статистики при отключении
+                this.resetStats();
+            }
+
+            resetStats() {
+                this.stats = {
+                    fps: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] },
+                    frameTime: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] },
+                    memory: { min: Infinity, max: -Infinity, sum: 0, count: 0, samples: [] }
+                };
+                this.sessionStartTime = Date.now();
+            }
+
+            initCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                
+                [this.frameTimeCanvas, this.fpsCanvas, this.memoryCanvas].forEach(canvas => {
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    ctx.imageSmoothingEnabled = false;
+                });
+            }
+
+            connect() {
+                this.ws = new WebSocket(this.serverAddress + '/performance');
+                this.updateStatus(`Connecting to ${this.serverAddress}...`, false);
+                console.log('Connecting to Unity performance monitor at', this.serverAddress);
+                
+                this.ws.onopen = () => {
+                    this.isConnected = true;
+                    this.updateConnectionStatus();
+                    console.log('Connected to Unity performance monitor');
+                };
+
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.updateData(data);
+                        this.updateUI(data);
+                        this.updateStats(data);
+                        this.drawGraphs();
+                    } catch (e) {
+                        console.error('Error parsing performance data:', e);
+                    }
+                };
+
+                this.ws.onclose = () => {
+                    this.isConnected = false;
+                    this.updateConnectionStatus();
+                    setTimeout(() => this.connect(), 3000);
+                };
+
+                this.ws.onerror = (error) => {
+                    console.error('Performance WebSocket error:', error);
+                    this.updateConnectionStatus();
+                };
+            }
+
+            connectDeviceInfo() {
+                this.deviceWs = new WebSocket(this.serverAddress + '/device');
+                console.log('Connecting to device information service at', this.serverAddress);
+                
+                this.deviceWs.onopen = () => {
+                    this.deviceConnected = true;
+                    this.updateConnectionStatus();
+                    console.log('Connected to device information service');
+                };
+
+                this.deviceWs.onmessage = (event) => {
+                    try {
+                        this.updateDeviceInfo(event.data);
+                    } catch (e) {
+                        console.error('Error parsing device data:', e);
+                    }
+                };
+
+                this.deviceWs.onclose = () => {
+                    this.deviceConnected = false;
+                    this.updateConnectionStatus();
+                    setTimeout(() => this.connectDeviceInfo(), 3000);
+                };
+
+                this.deviceWs.onerror = (error) => {
+                    console.error('Device WebSocket error:', error);
+                    this.updateConnectionStatus();
+                };
+            }
+
+            updateConnectionStatus() {
+                if (this.isConnected && this.deviceConnected) {
+                    this.updateStatus('Connected to Unity', true);
+                } else if (this.isConnected && !this.deviceConnected) {
+                    this.updateStatus('Connected (No device info)', true);
+                } else if (!this.isConnected && this.deviceConnected) {
+                    this.updateStatus('Device info only', false);
+                } else {
+                    this.updateStatus('Disconnected - Attempting to reconnect...', false);
+                }
+            }
+
+            updateDeviceInfo(deviceData) {
+                const deviceInfoElement = document.getElementById('deviceInfo');
+                
+                if (deviceData && deviceData.trim() !== '') {
+                    const lines = deviceData.split('\n');
+                    deviceInfoElement.innerHTML = '';
+                    
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            const lineElement = document.createElement('div');
+                            lineElement.className = 'device-info-line';
+                            lineElement.textContent = line;
+                            deviceInfoElement.appendChild(lineElement);
+                        }
+                    });
+                } else {
+                    deviceInfoElement.innerHTML = '<div class="device-info-line">No device information available</div>';
+                }
+            }
+
+            updateData(data) {
+                this.frameTimeHistory.shift();
+                this.frameTimeHistory.push(data.frameTime);
+                
+                this.fpsHistory.shift();
+                this.fpsHistory.push(data.fps);
+                
+                this.memoryHistory.shift();
+                this.memoryHistory.push(data.allocPerFrameMB);
+            }
+
+            updateStats(data) {
+                // Обновление статистики FPS
+                this.updateStat('fps', data.fps);
+                
+                // Обновление статистики Frame Time
+                this.updateStat('frameTime', data.frameTime);
+                
+                // Обновление статистики Memory
+                this.updateStat('memory', data.allocPerFrameMB);
+                
+                // Обновление UI статистики
+                this.updateStatsUI();
+            }
+
+            updateStat(statName, value) {
+                const stat = this.stats[statName];
+                
+                if (value < stat.min) stat.min = value;
+                if (value > stat.max) stat.max = value;
+                
+                stat.sum += value;
+                stat.count++;
+                
+                // Сохраняем последние 1000 семплов для расчета 1% низких FPS
+                stat.samples.push(value);
+                if (stat.samples.length > 1000) {
+                    stat.samples.shift();
+                }
+            }
+
+            calculate1PercentLow(samples) {
+                if (samples.length === 0) return 0;
+                
+                // Сортируем копию массива
+                const sorted = [...samples].sort((a, b) => a - b);
+                
+                // Берем 1% наименьших значений
+                const onePercentIndex = Math.floor(sorted.length * 0.01);
+                const worstSamples = sorted.slice(0, onePercentIndex + 1);
+                
+                // Возвращаем среднее из худших 1%
+                return worstSamples.reduce((sum, val) => sum + val, 0) / worstSamples.length;
+            }
+
+            updateStatsUI() {
+                const fpsStat = this.stats.fps;
+                const frameTimeStat = this.stats.frameTime;
+                const memoryStat = this.stats.memory;
+                
+                // FPS статистика
+                if (fpsStat.count > 0) {
+                    const fpsAvg = fpsStat.sum / fpsStat.count;
+                    const fps1Percent = this.calculate1PercentLow(fpsStat.samples);
+                    
+                    document.getElementById('fps1Percent').textContent = fps1Percent.toFixed(1);
+                    document.getElementById('fpsMin').textContent = fpsStat.min.toFixed(1);
+                    document.getElementById('fpsAvg').textContent = fpsAvg.toFixed(1);
+                    document.getElementById('fpsMax').textContent = fpsStat.max.toFixed(1);
+                }
+                
+                // Frame Time статистика
+                if (frameTimeStat.count > 0) {
+                    const frameTimeAvg = frameTimeStat.sum / frameTimeStat.count;
+                    
+                    document.getElementById('frameTimeCurrent').textContent = frameTimeAvg.toFixed(1);
+                    document.getElementById('frameTimeMin').textContent = frameTimeStat.min.toFixed(1);
+                    document.getElementById('frameTimeAvg').textContent = frameTimeAvg.toFixed(1);
+                    document.getElementById('frameTimeMax').textContent = frameTimeStat.max.toFixed(1);
+                }
+                
+                // Memory статистика
+                if (memoryStat.count > 0) {
+                    const memoryAvg = memoryStat.sum / memoryStat.count;
+                    
+                    document.getElementById('memoryCurrent').textContent = memoryAvg.toFixed(3);
+                    document.getElementById('memoryMin').textContent = memoryStat.min.toFixed(3);
+                    document.getElementById('memoryAvg').textContent = memoryAvg.toFixed(3);
+                    document.getElementById('memoryMax').textContent = memoryStat.max.toFixed(3);
+                }
+                
+                // Время сессии и количество семплов
+                const sessionTime = Math.floor((Date.now() - this.sessionStartTime) / 1000);
+                const minutes = Math.floor(sessionTime / 60);
+                const seconds = sessionTime % 60;
+                document.getElementById('sessionTime').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('sampleCount').textContent = fpsStat.count;
+            }
+
+            updateUI(data) {
+                const fpsValue = Math.round(data.fps);
+                document.getElementById('fpsValue').textContent = fpsValue;
+                document.getElementById('currentFPS').textContent = `${fpsValue} FPS`;
+                
+                const fpsElement = document.getElementById('fpsValue');
+                fpsElement.className = 'value ' + (
+                    data.fps >= 55 ? 'fps-good' : 
+                    data.fps >= 30 ? 'fps-ok' : 'fps-bad'
+                );
+                
+                const frameTimeText = data.frameTime.toFixed(1);
+                document.getElementById('frameTimeValue').textContent = `${frameTimeText} ms`;
+                document.getElementById('currentFrameTime').textContent = `${frameTimeText} ms`;
+                
+                document.getElementById('memoryValue').textContent = 
+                    `${data.allocPerFrameKB.toFixed(1)} KB/frame`;
+                document.getElementById('currentMemory').textContent = 
+                    `${data.allocPerFrameMB.toFixed(3)} MB/frame`;
+                
+                const totalMemoryMB = (data.totalMemory / (1024 * 1024)).toFixed(1);
+                document.getElementById('totalMemoryValue').textContent = `${totalMemoryMB} MB`;
+                
+                document.getElementById('fpsStatus').textContent = 
+                    data.fps >= 55 ? 'Excellent' : 
+                    data.fps >= 30 ? 'Good' : 'Poor';
+            }
+
+            drawGraphs() {
+                this.drawGraph(this.frameTimeCtx, this.frameTimeHistory, '#2196F3', 'Frame Time (ms)');
+                this.drawGraph(this.fpsCtx, this.fpsHistory, '#4CAF50', 'FPS');
+                this.drawGraph(this.memoryCtx, this.memoryHistory, '#FF9800', 'Memory (MB)');
+            }
+
+            drawGraph(ctx, data, color, label) {
+                const canvas = ctx.canvas;
+                const dpr = window.devicePixelRatio || 1;
+                const width = canvas.width / dpr;
+                const height = canvas.height / dpr;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                
+                for (let i = 1; i < 4; i++) {
+                    const y = (height / 4) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+                
+                ctx.setLineDash([]);
+                
+                const maxValue = Math.max(...data.filter(v => !isNaN(v))) || 1;
+                
+                if (label === 'Frame Time (ms)') {
+                    document.getElementById('frameTimeGraphMax').textContent = `${maxValue.toFixed(1)}ms`;
+                } else if (label === 'FPS') {
+                    document.getElementById('fpsGraphMax').textContent = Math.round(maxValue);
+                } else if (label === 'Memory (MB)') {
+                    document.getElementById('memoryGraphMax').textContent = `${maxValue.toFixed(3)}MB`;
+                }
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                const step = width / (this.historySize - 1);
+                
+                for (let i = 0; i < this.historySize; i++) {
+                    const value = data[i];
+                    if (isNaN(value)) continue;
+                    
+                    const x = i * step;
+                    const y = height - (value / maxValue) * height;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                
+                const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                gradient.addColorStop(0, color + '40');
+                gradient.addColorStop(1, color + '10');
+                
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            updateStatus(message, isConnected) {
+                const status = document.getElementById('status');
+                status.textContent = message;
+                status.className = `status ${isConnected ? 'connected' : 'disconnected'}`;
+            }
+        }
+
+        let monitor;
+        window.addEventListener('load', () => {
+            monitor = new PerformanceMonitor();
+            
+            document.getElementById('serverAddress').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    monitor.updateServerAddress();
+                }
+            });
+
+            document.getElementById('presetModal').addEventListener('click', (e) => {
+                if (e.target.id === 'presetModal') {
+                    monitor.closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

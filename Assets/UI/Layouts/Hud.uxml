@@ -1,0 +1,56 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Uss/Hud.uss?fileID=7433441132597879392&amp;guid=f982b57a1eaec794ba84fe27b1729a8d&amp;type=3#Hud" />
+    <BetterJoystick.Runtime.Joystick name="MovmentDirectionJoystick" style="position: absolute; top: auto; left: 207px; bottom: 209px;" />
+    <ui:VisualElement style="flex-grow: 1; width: 40%; height: 10%; align-self: flex-end; justify-content: space-between; align-content: flex-start; flex-wrap: wrap; flex-direction: row; align-items: flex-end;">
+        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; bottom: 9%; left: auto; right: 86%;" />
+        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; right: 56%; bottom: 23%;" />
+        <BetterJoystick.Runtime.Joystick style="position: absolute; right: 27%; bottom: 11%;" />
+        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; right: 8%; top: auto; bottom: 36%;" />
+    </ui:VisualElement>
+ <ui:VisualElement name="entities-stats-container" class="entities-stats-container">
+        <ui:VisualElement name="VisualElement" class="header-row">
+            <ui:Label text="Scene Entities" class="header-label" />
+            <ui:VisualElement name="status-indicator" class="status-indicator" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="active-entities-label" text="Active: 0" class="stat-value" />
+        </ui:VisualElement>
+        
+        <!-- Сетевая статистика -->
+        <ui:VisualElement name="VisualElement" class="header-row">
+            <ui:Label text="Network Statistics" class="header-label" />
+        </ui:VisualElement>
+        
+        <!-- Отправленные пакеты -->
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="packets-sent-label" text="Packets Sent: 0" class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="packets-sent-ps-label" text="Packets/Sec (Sent): 0.00" class="stat-value stat-value-ps" />
+        </ui:VisualElement>
+        
+        <!-- Полученные пакеты -->
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="packets-received-label" text="Packets Received: 0" class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="packets-received-ps-label" text="Packets/Sec (Received): 0.00" class="stat-value stat-value-ps" />
+        </ui:VisualElement>
+        
+        <!-- Отправленные байты -->
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-sent-label" text="Bytes Sent: 0" class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-sent-ps-label" text="Bytes/Sec (Sent): 0.00" class="stat-value stat-value-ps" />
+        </ui:VisualElement>
+        
+        <!-- Полученные байты -->
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-received-label" text="Bytes Received: 0" class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-received-ps-label" text="Bytes/Sec (Received): 0.00" class="stat-value stat-value-ps" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

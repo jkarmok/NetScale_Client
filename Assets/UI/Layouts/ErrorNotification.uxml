@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="InlineError" class="inline-error" style="display: none;">
+        <ui:VisualElement class="error-icon">!</ui:VisualElement>
+        <ui:Label name="ErrorText" class="error-text" text="" />
+    </ui:VisualElement>
+    
+    <ui:VisualElement name="PopupError" class="popup-error" style="display: none;">
+        <ui:VisualElement class="error-header">
+            <ui:Label text="Ошибка" class="error-title" />
+            <ui:Button name="CloseButton" text="✕" class="error-close-button" />
+        </ui:VisualElement>
+        <ui:Label name="PopupErrorText" class="popup-error-text" text="" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,29 @@
+{
+  "name": "com.tdw.better.joystick",
+  "displayName": "[Deprecated] Better Joystick",
+  "version": "0.2.6",
+  "unity": "2021.3",
+  "description": "Simple UI joystick done on UI Toolkit",
+  "author": {
+    "name": "Better Plugins",
+    "url": "https://github.com/techno-dwarf-works"
+  },
+  "changelogUrl": "https://github.com/techno-dwarf-works/better-joystick",
+  "documentationUrl": "https://github.com/techno-dwarf-works/better-joystick/tree/main#readme",
+  "license": "MIT",
+  "licensesUrl":"https://github.com/techno-dwarf-works/better-joystick/blob/main/LICENSE",
+  "keywords": [
+    "Input",
+    "User Input",
+    "Joystick",
+    "UIToolkit",
+    "UI"
+  ],
+  "samples": [
+    {
+      "displayName": "Default samples",
+      "description": "Contains test samples",
+      "path": "Samples~/TestSamples"
+    }
+  ]
+}

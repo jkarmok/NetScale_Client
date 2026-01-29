@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="popup-error">
+        <ui:VisualElement class="error-header">
+            <ui:Label text="Error" class="error-title" />
+            <ui:Button name="CloseButton" text="✕" class="error-close-button" />
+        </ui:VisualElement>
+        <ui:Label name="PopupErrorText" class="popup-error-text" text="Error message" />
+    </ui:VisualElement>
+</ui:UXML>
