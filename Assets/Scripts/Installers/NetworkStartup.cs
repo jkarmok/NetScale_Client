@@ -8,8 +8,8 @@ namespace Installers
 {
     public class NetworkStartup : IStartable, IDisposable
     {
-        private readonly SplashScreen splashScreen;
-        private readonly LoginScreen loginScreen;
+        private readonly SplashScreen _splashScreen;
+        private readonly LoginScreen _loginScreen;
         private readonly ClientToProxy _clientToProxy;
         private readonly TestMediators _testMediators;
         private readonly AreaOfInterestMediator _areaOfInterestGateway;
@@ -24,8 +24,8 @@ namespace Installers
             TestMediators testMediators, AreaOfInterestMediator areaOfInterestGateway,
             ConnectionMediator connectionMediator, HudMediator hudMediator, TimeMediator timeMediator, NetworkMediator networkMediator)
         {
-            this.splashScreen = splashScreen;
-            this.loginScreen = loginScreen;
+            _splashScreen = splashScreen;
+            _loginScreen = loginScreen;
             _clientToProxy = clientToProxy;
             _testMediators = testMediators;
             _areaOfInterestGateway = areaOfInterestGateway;
@@ -44,8 +44,8 @@ namespace Installers
  
         public void Dispose()
         {
-            splashScreen?.Dispose();
-            loginScreen?.Dispose();
+            _splashScreen?.Dispose();
+            _loginScreen?.Dispose();
             _clientToProxy?.Dispose();
         }
     }

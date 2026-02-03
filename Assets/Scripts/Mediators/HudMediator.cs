@@ -10,13 +10,13 @@ namespace Mediators
     {
         private readonly IntervalTimer _intervalTimer;
 
-        private readonly HudScreen hudScreen;
+        private readonly HudScreen _hudScreen;
         private readonly InputGateway _inputGateway;
         private readonly GameLoop _gameLoop;
 
         public HudMediator(HudScreen hudScreen, InputGateway inputGateway, GameLoop gameLoop)
         {
-            this.hudScreen = hudScreen;
+            _hudScreen = hudScreen;
             _inputGateway = inputGateway;
             _gameLoop = gameLoop;
             _gameLoop.Updated += OnUpdated;
@@ -24,7 +24,7 @@ namespace Mediators
 
         private void OnUpdated(float obj)
         {
-            _inputGateway.Publish(hudScreen.MovmentDirection);
+            _inputGateway.Publish(_hudScreen.MovmentDirection);
         }
 
         public void Dispose()

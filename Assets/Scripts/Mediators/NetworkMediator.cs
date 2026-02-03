@@ -9,14 +9,14 @@ namespace Mediators
 {
     public class NetworkMediator : IDisposable
     {
-        private readonly NetworkStatisticViewModel networkStatisticViewModel;
+        private readonly NetworkStatisticViewModel _networkStatisticViewModel;
         private readonly ClientToProxy _clientToProxy;
         private readonly GameLoop _gameLoop;
         private readonly IntervalTimer _intervalTimer;
         
         public NetworkMediator(NetworkStatisticViewModel networkStatisticViewModel, ClientToProxy clientToProxy, GameLoop gameLoop)
         {
-            this.networkStatisticViewModel = networkStatisticViewModel;
+            _networkStatisticViewModel = networkStatisticViewModel;
             _clientToProxy = clientToProxy;
             _gameLoop = gameLoop;
             _intervalTimer = new IntervalTimer(1, OnUpdated);
@@ -28,7 +28,7 @@ namespace Mediators
             if (_clientToProxy.TryGetStatistics(out long packetsSent, out long packetsReceived, out var bytesSent,
                     out var bytesReceived))
             {
-                networkStatisticViewModel.UpdateStatistics(packetsSent, packetsReceived, bytesSent, bytesReceived);
+                _networkStatisticViewModel.UpdateStatistics(packetsSent, packetsReceived, bytesSent, bytesReceived);
             }
         }
 

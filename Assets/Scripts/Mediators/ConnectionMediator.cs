@@ -7,15 +7,15 @@ namespace Mediators
 {
     public class ConnectionMediator : IDisposable
     {
-        private readonly SplashScreen splashScreen;
-        private readonly LoginScreen loginScreen;
+        private readonly SplashScreen _splashScreen;
+        private readonly LoginScreen _loginScreen;
         private readonly ClientToProxy _clientToProxy;
         private readonly ScreenSwitcher _screenSwitcher;
       
         public ConnectionMediator(SplashScreen splashScreen, LoginScreen loginScreen, ClientToProxy clientToProxy, ScreenSwitcher screenSwitcher)
         {
-            this.splashScreen = splashScreen;
-            this.loginScreen = loginScreen;
+            _splashScreen = splashScreen;
+            _loginScreen = loginScreen;
             _clientToProxy = clientToProxy;
             _screenSwitcher = screenSwitcher;
 
@@ -29,12 +29,12 @@ namespace Mediators
 
         public void Start()
         {
-            splashScreen.Completed += OnCompleted;
+            _splashScreen.Completed += OnCompleted;
         }
 
         private void OnCompleted()
         {
-            loginScreen.OnConnectSubmitted += OnConnected;
+            _loginScreen.OnConnectSubmitted += OnConnected;
             _screenSwitcher.ShowScreen(ScreenId.Login, 0.5f);
         }
 
@@ -47,8 +47,8 @@ namespace Mediators
         {
             _clientToProxy.Connected -= OnClientConnected;
             
-            splashScreen?.Dispose();
-            loginScreen?.Dispose();
+            _splashScreen?.Dispose();
+            _loginScreen?.Dispose();
             _clientToProxy?.Dispose();
         }
     }

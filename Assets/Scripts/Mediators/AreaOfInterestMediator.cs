@@ -11,7 +11,7 @@ namespace Mediators
     {
         private readonly BatchSceneApplier _batchSceneApplier;
         private readonly AreaOfInterestGateway _gateway;
-        private readonly AreaOfInterestViewModel areaOfInterestViewModel;
+        private readonly AreaOfInterestViewModel _areaOfInterestViewModel;
         private readonly IntervalTimer _statsInterval;
 
         private readonly GameLoop _gameLoop;
@@ -20,7 +20,7 @@ namespace Mediators
         {
             _batchSceneApplier = batchSceneApplier;
             _gateway = gateway;
-            this.areaOfInterestViewModel = areaOfInterestViewModel;
+            _areaOfInterestViewModel = areaOfInterestViewModel;
             _gameLoop = gameLoop;
             _gateway.EntityLifecycleUpdate += batchSceneApplier.ApplyLifecycle;
             _gateway.TransformUpdate += batchSceneApplier.ApplyTransforms;
@@ -32,7 +32,7 @@ namespace Mediators
         private void OnUpdated(float deltaTime)
         {
             _batchSceneApplier.GetStats(out var activeEntities, out var totalSpawns, out var totalDespawns);
-           areaOfInterestViewModel.UpdateStats(activeEntities);
+           _areaOfInterestViewModel.UpdateStats(activeEntities);
         }
 
 

@@ -11,11 +11,11 @@ namespace Installers
     {
         private readonly ScreenRegistry _screenRegistry;
         private readonly UIDocument _uiDocument;
-        private readonly HudScreen hudScreen;
-        private readonly LoadingScreen loadingScreen;
-        private readonly LoginScreen loginScreen;
-        private readonly SplashScreen splashScreen;
-        private readonly FadeTransitionScreen fadeTransitionScreen;
+        private readonly HudScreen _hudScreen;
+        private readonly LoadingScreen _loadingScreen;
+        private readonly LoginScreen _loginScreen;
+        private readonly SplashScreen _splashScreen;
+        private readonly FadeTransitionScreen _fadeTransitionScreen;
         private readonly ScreenSwitcher _screenSwitcher;
 
         public const string HUDViewName = "HudView";
@@ -36,11 +36,11 @@ namespace Installers
         {
             _screenRegistry = screenRegistry;
             _uiDocument = uiDocument;
-            this.hudScreen = hudScreen;
-            this.loadingScreen = loadingScreen;
-            this.loginScreen = loginScreen;
-            this.splashScreen = splashScreen;
-            this.fadeTransitionScreen = fadeTransitionScreen;
+            _hudScreen = hudScreen;
+            _loadingScreen = loadingScreen;
+            _loginScreen = loginScreen;
+            _splashScreen = splashScreen;
+            _fadeTransitionScreen = fadeTransitionScreen;
             _screenSwitcher = screenSwitcher;
         }
 
@@ -53,16 +53,16 @@ namespace Installers
         {
             VisualElement root = _uiDocument.rootVisualElement;
 
-            hudScreen.Initialize(root.Q<VisualElement>(HUDViewName), root);
-            loginScreen.Initialize(root.Q<VisualElement>(LoginViewName), root);
-            splashScreen.Initialize(root.Q<VisualElement>(SplashViewName), root);
-            loadingScreen.Initialize(root.Q<VisualElement>(LoadingViewName), root);
-            fadeTransitionScreen.Initialize(CreateFadeOverlay(root), root);
+            _hudScreen.Initialize(root.Q<VisualElement>(HUDViewName), root);
+            _loginScreen.Initialize(root.Q<VisualElement>(LoginViewName), root);
+            _splashScreen.Initialize(root.Q<VisualElement>(SplashViewName), root);
+            _loadingScreen.Initialize(root.Q<VisualElement>(LoadingViewName), root);
+            _fadeTransitionScreen.Initialize(CreateFadeOverlay(root), root);
 
-            _screenRegistry.RegisterScreen(ScreenId.Hud, hudScreen);
-            _screenRegistry.RegisterScreen(ScreenId.Loading, loadingScreen);
-            _screenRegistry.RegisterScreen(ScreenId.Login, loginScreen);
-            _screenRegistry.RegisterScreen(ScreenId.Splash, splashScreen);
+            _screenRegistry.RegisterScreen(ScreenId.Hud, _hudScreen);
+            _screenRegistry.RegisterScreen(ScreenId.Loading, _loadingScreen);
+            _screenRegistry.RegisterScreen(ScreenId.Login, _loginScreen);
+            _screenRegistry.RegisterScreen(ScreenId.Splash, _splashScreen);
             
             _screenSwitcher.ShowScreen(ScreenId.Splash, 0.5f);
         }
