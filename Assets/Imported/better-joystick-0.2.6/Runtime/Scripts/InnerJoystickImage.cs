@@ -4,90 +4,122 @@ using UnityEngine.UIElements;
 
 namespace BetterJoystick.Runtime
 {
+    /// <summary>
+    /// Inner thumb image of the joystick.
+    /// Tracks pointer/touch drag and reports state changes via <see cref="DragEvent"/>.
+    /// Uses Pointer events to support simultaneous multi-touch / multi-joystick.
+    /// Works with mouse in Editor as well (mouse generates pointerId = PointerId.mousePointerId).
+    ///
+    /// State machine:
+    ///   AtRest → (PointerDown) → Ready
+    ///   Ready  → (PointerMove) → Started → (next PointerMove) → Dragging
+    ///   Dragging / Started → (PointerUp / PointerCancel) → AtRest
+    /// </summary>
     public class InnerJoystickImage : Image
     {
+        public const string StyleClassName    = "better-inner-joystick";
+        private const string DraggedClassName = "dragged";
+
+        /// <summary>Fired on every relevant pointer event. Uses struct to avoid heap allocation.</summary>
+        public Action<MouseDragEvent> DragEvent;
+
         private readonly bool _centerByPress;
-        public event Action<MouseDragEvent> DragEvent;
+        private DragState     _dragState;
 
-        private bool _isInitialized;
-
-        private DragState _dragState;
-        public const string StyleClassName = "better-inner-joystick";
+        /// <summary>The pointer id currently tracked by this thumb (-1 = none).</summary>
+        private int _trackedPointerId = -1;
 
         public InnerJoystickImage(bool centerByPress)
         {
             _centerByPress = centerByPress;
-            _dragState = DragState.AtRest;
-            RegisterCallback<AttachToPanelEvent>(OnAttach);
+            _dragState     = DragState.AtRest;
+
             AddToClassList(StyleClassName);
+            RegisterCallback<AttachToPanelEvent>(OnAttach);
         }
+
+        // ─── Lifecycle ───────────────────────────────────────────────────────────
 
         private void OnAttach(AttachToPanelEvent evt)
         {
             UnregisterCallback<AttachToPanelEvent>(OnAttach);
-            panel.visualTree.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-            panel.visualTree.RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
-            panel.visualTree.RegisterCallback<MouseUpEvent>(OnMouseUpEvent);
+
+            // PointerDown: listen on self and parent so both normal & CenterByPress modes work.
+            // Using TrickleDown so we catch it before children consume it.
+            RegisterCallback<PointerDownEvent>(OnPointerDown, TrickleDown.TrickleDown);
+            parent?.RegisterCallback<PointerDownEvent>(OnPointerDown, TrickleDown.TrickleDown);
+
+            // Move/Up: listen on visualTree so we don't lose the pointer when it slides outside.
+            panel.visualTree.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+            panel.visualTree.RegisterCallback<PointerUpEvent>(OnPointerUp);
+            panel.visualTree.RegisterCallback<PointerCancelEvent>(OnPointerCancel);
         }
 
-        private void OnMouseDownEvent(MouseDownEvent e)
+        // ─── Pointer handlers ────────────────────────────────────────────────────
+
+        private void OnPointerDown(PointerDownEvent e)
         {
-            if (_centerByPress)
-            {
-                if (e.target != parent || e.button != 0) return;
-            }
-            else
-            {
-                if (e.target != this || e.button != 0) return;
-            }
+            // Already tracking a pointer — ignore
+            if (_trackedPointerId != -1) return;
 
+            bool validTarget = _centerByPress
+                ? e.currentTarget == parent
+                : e.currentTarget == this;
 
-            PrepareDraggingBox();
-            CallEvent(e);
+            if (!validTarget) return;
+
+            _trackedPointerId = e.pointerId;
+            _dragState        = DragState.Ready;
+            FireEvent(e);
+
+            e.StopPropagation();
         }
 
-        public void PrepareDraggingBox()
+        private void OnPointerMove(PointerMoveEvent e)
         {
-            _dragState = DragState.Ready;
-        }
+            if (e.pointerId != _trackedPointerId) return;
 
-        private void OnMouseMoveEvent(MouseMoveEvent e)
-        {
-            if (_dragState == DragState.Ready)
+            switch (_dragState)
             {
-                StartDraggingBox();
-            }
+                case DragState.Ready:
+                    _dragState = DragState.Started;
+                    AddToClassList(DraggedClassName);
+                    FireEvent(e);
+                    _dragState = DragState.Dragging;
+                    break;
 
-            if (_dragState == DragState.Dragging)
-            {
-                CallEvent(e);
-            }
-        }
-
-        private void OnMouseUpEvent(MouseUpEvent e)
-        {
-            if (_dragState != DragState.AtRest && e.button == 0)
-            {
-                StopDraggingBox();
-                CallEvent(e);
+                case DragState.Dragging:
+                    FireEvent(e);
+                    break;
             }
         }
 
-        private void StartDraggingBox()
+        private void OnPointerUp(PointerUpEvent e)
         {
-            AddToClassList("dragged");
-            _dragState = DragState.Dragging;
+            if (e.pointerId != _trackedPointerId || _dragState == DragState.AtRest) return;
+            ResetState();
+            FireEvent(e);
         }
 
-        private void CallEvent<T>(MouseEventBase<T> e) where T : MouseEventBase<T>, new()
+        private void OnPointerCancel(PointerCancelEvent e)
+        {
+            if (e.pointerId != _trackedPointerId || _dragState == DragState.AtRest) return;
+            ResetState();
+            FireEvent(e);
+        }
+
+        // ─── Helpers ─────────────────────────────────────────────────────────────
+
+        private void ResetState()
+        {
+            _trackedPointerId = -1;
+            _dragState        = DragState.AtRest;
+            RemoveFromClassList(DraggedClassName);
+        }
+
+        private void FireEvent<T>(PointerEventBase<T> e) where T : PointerEventBase<T>, new()
         {
             DragEvent?.Invoke(new MouseDragEvent(e, e.target, _dragState));
-        }
-
-        private void StopDraggingBox()
-        {
-            RemoveFromClassList("dragged");
-            _dragState = DragState.AtRest;
         }
     }
 }

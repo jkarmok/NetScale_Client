@@ -113,15 +113,40 @@ namespace Scene
         #endregion
         
         public bool UseExtrapolation { get; set; } = true;
-
+        private bool _useLocalSpace = false;
         public NetworkInterpolator(Transform transform, NetworkTime networkTime)
         {
             _targetTransform = transform;
             _networkTime = networkTime;
+            _useLocalSpace = transform.parent != null;
         }
         
- 
-        
+        private Vector3 GetCurrentPosition()
+        {
+            return _useLocalSpace ? _targetTransform.localPosition : _targetTransform.position;
+        }
+        private Quaternion GetCurrentRotation()
+        {
+            return _useLocalSpace ? _targetTransform.localRotation : _targetTransform.rotation;
+        }
+        private void SetPosition(Vector3 position)
+        {
+            if (_useLocalSpace)
+                _targetTransform.localPosition = position;
+            else
+                _targetTransform.position = position;
+        }   
+        private void SetRotation(Quaternion position)
+        {
+            if (_useLocalSpace)
+                _targetTransform.localRotation = position;
+            else
+                _targetTransform.rotation = position;
+        }
+        public void SetCoordinateSpace(bool useLocalSpace)
+        {
+            _useLocalSpace = useLocalSpace;
+        }
         public void Update()
         {
             if (!_hasValidStates) return;
@@ -194,8 +219,8 @@ namespace Scene
         public void Teleport(Vector3 position, Quaternion rotation)
         {
             Reset(position, rotation);
-            _targetTransform.position = position;
-            _targetTransform.rotation = rotation;
+            SetPosition(position);
+            SetRotation(rotation);
         }
 
         public void ConfigureForDistance(float distance)
@@ -225,7 +250,7 @@ namespace Scene
             return new DebugInfo
             {
                 serverPosition = _current.Position,
-                clientPosition = _targetTransform.position,
+                clientPosition = GetCurrentPosition(),
                 latency = _networkTime.GetLocalTime() - _current.ServerTime,
                 bufferSize = _hasValidStates ? 2 : 0,
                 isExtrapolating = IsCurrentlyExtrapolating(),
@@ -374,13 +399,13 @@ namespace Scene
 
         private Vector3 ApplyFinalSmoothing(Vector3 targetPosition, int updateInterval)
         {
-            if (Vector3.Distance(targetPosition, _targetTransform.position) < Constants.FINAL_SMOOTHING_DISTANCE_THRESHOLD)
+            if (Vector3.Distance(targetPosition, GetCurrentPosition()) < Constants.FINAL_SMOOTHING_DISTANCE_THRESHOLD)
             {
                 float smoothingTime = Constants.BASE_SMOOTH_DAMP_TIME * 
                     (updateInterval * Constants.UPDATE_INTERVAL_SMOOTHING_MULTIPLIER);
                 
                 return Vector3.SmoothDamp(
-                    _targetTransform.position, 
+                    GetCurrentPosition(), 
                     targetPosition, 
                     ref _smoothedVelocity, 
                     smoothingTime
@@ -392,16 +417,16 @@ namespace Scene
 
         private void ApplyTransform(Vector3 position, Quaternion rotation)
         {
-            if (Vector3.Distance(_targetTransform.position, position) > Constants.TELEPORT_DISTANCE_THRESHOLD)
+            if (Vector3.Distance(GetCurrentPosition(), position) > Constants.TELEPORT_DISTANCE_THRESHOLD)
             {
-                _targetTransform.position = position;
-                _targetTransform.rotation = rotation;
+                SetPosition(position);
+                SetRotation(rotation);
                 _smoothedVelocity = Vector3.zero;
             }
             else
             {
-                _targetTransform.position = position;
-                _targetTransform.rotation = rotation;
+                SetPosition(position);
+                SetRotation(rotation);
             }
         }
 

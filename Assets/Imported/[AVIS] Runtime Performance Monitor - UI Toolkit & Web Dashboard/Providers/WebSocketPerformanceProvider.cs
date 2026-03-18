@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Imported.AVIS.RuntimePerformanceMonitor.Providers
@@ -17,7 +18,17 @@ namespace Imported.AVIS.RuntimePerformanceMonitor.Providers
         protected override void Awake()
         {
             base.Awake();
+            
+        }
+
+        private void OnEnable()
+        {
             StartWebSocketServer();
+        }
+
+        private void OnDisable()
+        {
+            _server.Stop();
         }
 
         private void StartWebSocketServer()

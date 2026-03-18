@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Camera
+namespace NetScaleClient.Camera
 {
     public interface ICameraTarget
     {

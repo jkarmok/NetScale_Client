@@ -4,6 +4,7 @@
     {
         AtRest,
         Ready,
+        Started,
         Dragging
     }
 }

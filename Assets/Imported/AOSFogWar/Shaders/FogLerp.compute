@@ -1,0 +1,14 @@
+﻿#pragma kernel CSMain
+
+RWTexture2D<float4> BufferTex;
+Texture2D<float4> TargetTex;
+float LerpSpeed;
+float DeltaTime;
+
+[numthreads(8,8,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 bufferColor = BufferTex[id.xy];
+    float4 targetColor = TargetTex[id.xy];
+    BufferTex[id.xy] = lerp(bufferColor, targetColor, LerpSpeed * DeltaTime);
+}

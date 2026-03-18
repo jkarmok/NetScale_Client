@@ -1,6 +1,6 @@
 using System;
-using Camera;
 using Game.Scene;
+using NetScaleClient.Camera;
 using Scene;
 using UnityEngine;
 using VContainer.Unity;
@@ -18,7 +18,7 @@ namespace Installers
             _batchSceneApplier = batchSceneApplier;
         }
         
-        private void EntityRemoved(NetworkEntity view)
+        private void EntityRemoved(NetworkEntity view, bool owned)
         {
             var cameraTarget = view.GetComponent<ICameraTarget>();
             

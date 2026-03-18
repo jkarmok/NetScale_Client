@@ -7,7 +7,7 @@ namespace UI.Screens
 {
     public class LoginScreen : UIScreen
     {
-        private readonly IErrorService _errorService;
+        private readonly INotificationService _notificationService;
         private Button _connectButton;
         private TextField _connectionInput;
         private VisualElement _errorContainer;
@@ -21,9 +21,9 @@ namespace UI.Screens
         
         public event Action<string, int> OnConnectSubmitted; 
         
-        public LoginScreen(IErrorService errorService)
+        public LoginScreen(INotificationService notificationService)
         {
-            _errorService = errorService;
+            _notificationService = notificationService;
         }
         
         public override void Initialize(VisualElement topElement, VisualElement rootElement)
@@ -53,22 +53,23 @@ namespace UI.Screens
         
         private void OnInputFocusIn(FocusInEvent evt)
         {
-            ClearErrors(ErrorType.Inline);
+            ClearErrors();
             _connectionInput.RemoveFromClassList("field-error");
         }
 
-        private void ClearErrors(ErrorType inline)
+        private void ClearErrors()
         {
-            _errorService.ClearErrors(Root,  inline);
+            _notificationService.ClearNotifications(NotificationType.Error, NotificationDisplayType.Inline);
         }
+
         private void ShowInlineError(string errorMessage)
         {
-            _errorService.ShowInlineError(Root,  errorMessage);
-            _errorService.ShowPopupError(Root,  "Успех!");
+            _notificationService.ShowInlineNotification(errorMessage, NotificationType.Error);
         }
+
         private void OnConnectButtonClicked()
         {
-            ClearErrors(ErrorType.Inline);
+            ClearErrors();
             
             if (string.IsNullOrWhiteSpace(_connectionInput.value))
             {

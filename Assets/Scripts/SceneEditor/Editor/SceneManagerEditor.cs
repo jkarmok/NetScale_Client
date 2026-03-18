@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Unity.Plastic.Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -172,17 +172,19 @@ namespace SceneEditor.Editor
 
         private void SaveSceneToJson()
         {
-            var sceneData = new
+          
+            var sceneData = new Game.SceneLoader.ParseResult()
             {
-                sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                saveDate = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                points = new List<object>()
+                SceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                SaveDate = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
             foreach (var point in allPoints)
             {
                 if (point != null)
-                    sceneData.points.Add(point.ToJson());
+                {
+                    point.ToJson(sceneData);
+                }
             }
 
             string json = JsonConvert.SerializeObject(sceneData, Formatting.Indented);

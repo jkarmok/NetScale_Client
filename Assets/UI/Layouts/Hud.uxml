@@ -1,56 +1,187 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Uss/Hud.uss?fileID=7433441132597879392&amp;guid=f982b57a1eaec794ba84fe27b1729a8d&amp;type=3#Hud" />
-    <BetterJoystick.Runtime.Joystick name="MovmentDirectionJoystick" style="position: absolute; top: auto; left: 207px; bottom: 209px;" />
+
+    <!-- ═══════════════════════════════════════════════
+         MOVEMENT JOYSTICK  (no ability state needed)
+    ════════════════════════════════════════════════ -->
+    <BetterJoystick.Runtime.Joystick
+        name="MovmentDirectionJoystick"
+        CenterByPress="true"
+        Recenter="true"
+        style="position: absolute; top: auto; left: 207px; bottom: 209px;" />
+
+    <!-- ═══════════════════════════════════════════════
+         ABILITY JOYSTICKS
+         Each joystick IS the ability button.
+         Skill-state UI lives inside as absolute children —
+         the joystick's own thumb (InnerJoystickImage) is
+         brought to front by Joystick.RebuildInner(), so
+         our overlays sit beneath the thumb automatically.
+    ════════════════════════════════════════════════ -->
+
+    <!-- контейнер сохранён 1-в-1 как в оригинале — % позиции джойстиков считаются от него -->
     <ui:VisualElement style="flex-grow: 1; width: 40%; height: 10%; align-self: flex-end; justify-content: space-between; align-content: flex-start; flex-wrap: wrap; flex-direction: row; align-items: flex-end;">
-        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; bottom: 9%; left: auto; right: 86%;" />
-        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; right: 56%; bottom: 23%;" />
-        <BetterJoystick.Runtime.Joystick style="position: absolute; right: 27%; bottom: 11%;" />
-        <BetterJoystick.Runtime.Joystick name="Joystick" style="position: absolute; right: 8%; top: auto; bottom: 36%;" />
+
+        <!-- ── Ability 1 ──────────────────────────────── -->
+        <BetterJoystick.Runtime.Joystick
+            name="Joystick1"
+            CenterByPress="true"
+            Normalize="true"
+            Recenter="true"
+            class="ability-joystick"
+            style="position: absolute; bottom: 9%; left: auto; right: 86%;">
+
+            <ui:VisualElement name="ability-1-icon"          class="aj-icon" />
+            <ui:VisualElement name="ability-1-cd-overlay"    class="aj-cd-overlay" />
+            <ui:VisualElement name="ability-1-cast-overlay"  class="aj-cast-overlay" />
+            <ui:VisualElement name="ability-1-charge-ring"   class="aj-charge-ring" />
+            <ui:Label         name="ability-1-cd-label"      class="aj-cd-label" text="" />
+            <ui:Label         name="ability-1-cast-label"    class="aj-cast-label" text="" />
+            <ui:VisualElement                                 class="aj-mana-badge">
+                <ui:Label     name="ability-1-mana"          class="aj-mana-label" text="80" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ability-1-unavailable"   class="aj-unavailable" />
+
+        </BetterJoystick.Runtime.Joystick>
+
+        <!-- ── Ability 2 ──────────────────────────────── -->
+        <BetterJoystick.Runtime.Joystick
+            name="Joystick2"
+            CenterByPress="true"
+            Normalize="true"
+            Recenter="true"
+            class="ability-joystick"
+            style="position: absolute; right: 56%; bottom: 23%;">
+
+            <ui:VisualElement name="ability-2-icon"          class="aj-icon" />
+            <ui:VisualElement name="ability-2-cd-overlay"    class="aj-cd-overlay" />
+            <ui:VisualElement name="ability-2-cast-overlay"  class="aj-cast-overlay" />
+            <ui:VisualElement name="ability-2-charge-ring"   class="aj-charge-ring" />
+            <ui:Label         name="ability-2-cd-label"      class="aj-cd-label" text="" />
+            <ui:Label         name="ability-2-cast-label"    class="aj-cast-label" text="" />
+            <ui:VisualElement                                 class="aj-mana-badge">
+                <ui:Label     name="ability-2-mana"          class="aj-mana-label" text="60" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ability-2-unavailable"   class="aj-unavailable" />
+
+        </BetterJoystick.Runtime.Joystick>
+
+        <!-- ── Ability 3 ──────────────────────────────── -->
+        <BetterJoystick.Runtime.Joystick
+            name="Joystick3"
+            CenterByPress="true"
+            Normalize="true"
+            Recenter="true"
+            class="ability-joystick"
+            style="position: absolute; right: 27%; bottom: 11%;">
+
+            <ui:VisualElement name="ability-3-icon"          class="aj-icon" />
+            <ui:VisualElement name="ability-3-cd-overlay"    class="aj-cd-overlay" />
+            <ui:VisualElement name="ability-3-cast-overlay"  class="aj-cast-overlay" />
+            <ui:VisualElement name="ability-3-charge-ring"   class="aj-charge-ring" />
+            <ui:Label         name="ability-3-cd-label"      class="aj-cd-label" text="" />
+            <ui:Label         name="ability-3-cast-label"    class="aj-cast-label" text="" />
+            <ui:VisualElement                                 class="aj-mana-badge">
+                <ui:Label     name="ability-3-mana"          class="aj-mana-label" text="120" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ability-3-unavailable"   class="aj-unavailable" />
+
+        </BetterJoystick.Runtime.Joystick>
+
+        <!-- ── Ability 4 (Ultimate) ───────────────────── -->
+        <BetterJoystick.Runtime.Joystick
+            name="Joystick4"
+            CenterByPress="true"
+            Normalize="true"
+            Recenter="true"
+            class="ability-joystick ability-joystick--ult"
+            style="position: absolute; right: 8%; top: auto; bottom: 36%;">
+
+            <ui:VisualElement name="ability-4-icon"          class="aj-icon" />
+            <ui:VisualElement name="ability-4-cd-overlay"    class="aj-cd-overlay" />
+            <ui:VisualElement name="ability-4-cast-overlay"  class="aj-cast-overlay" />
+            <ui:VisualElement name="ability-4-charge-ring"   class="aj-charge-ring" />
+            <ui:Label         name="ability-4-cd-label"      class="aj-cd-label" text="" />
+            <ui:Label         name="ability-4-cast-label"    class="aj-cast-label" text="" />
+            <ui:VisualElement                                 class="aj-mana-badge">
+                <ui:Label     name="ability-4-mana"          class="aj-mana-label" text="200" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ability-4-unavailable"   class="aj-unavailable" />
+
+        </BetterJoystick.Runtime.Joystick>
+
     </ui:VisualElement>
- <ui:VisualElement name="entities-stats-container" class="entities-stats-container">
-        <ui:VisualElement name="VisualElement" class="header-row">
+
+    <!-- ═══════════════════════════════════════════════
+         PLAYER STATS  (top-left)
+    ════════════════════════════════════════════════ -->
+    <ui:VisualElement name="player-stats" class="player-stats">
+        <ui:VisualElement class="stats-row">
+
+            <ui:VisualElement name="player-avatar" class="player-avatar">
+                <ui:VisualElement class="avatar-border" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="bars-column">
+
+                <ui:VisualElement class="bar-wrapper">
+                    <ui:VisualElement class="bar-icon hp-icon" />
+                    <ui:VisualElement class="bar-track">
+                        <ui:VisualElement name="hp-fill"  class="bar-fill hp-fill" />
+                        <ui:Label         name="hp-label" class="bar-label" text="1000 / 1000" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="bar-wrapper">
+                    <ui:VisualElement class="bar-icon mana-icon" />
+                    <ui:VisualElement class="bar-track">
+                        <ui:VisualElement name="mana-fill"  class="bar-fill mana-fill" />
+                        <ui:Label         name="mana-label" class="bar-label" text="500 / 500" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+
+    <!-- ═══════════════════════════════════════════════
+         DEBUG / NETWORK STATS  (existing, unchanged)
+    ════════════════════════════════════════════════ -->
+    <ui:VisualElement name="entities-stats-container" class="entities-stats-container">
+        <ui:VisualElement class="header-row">
             <ui:Label text="Scene Entities" class="header-label" />
             <ui:VisualElement name="status-indicator" class="status-indicator" />
         </ui:VisualElement>
         <ui:VisualElement class="stats-grid">
             <ui:Label name="active-entities-label" text="Active: 0" class="stat-value" />
         </ui:VisualElement>
-        
-        <!-- Сетевая статистика -->
-        <ui:VisualElement name="VisualElement" class="header-row">
+        <ui:VisualElement class="header-row">
             <ui:Label text="Network Statistics" class="header-label" />
         </ui:VisualElement>
-        
-        <!-- Отправленные пакеты -->
         <ui:VisualElement class="stats-grid">
-            <ui:Label name="packets-sent-label" text="Packets Sent: 0" class="stat-value" />
+            <ui:Label name="packets-sent-label"         text="Packets Sent: 0"              class="stat-value" />
         </ui:VisualElement>
         <ui:VisualElement class="stats-grid">
-            <ui:Label name="packets-sent-ps-label" text="Packets/Sec (Sent): 0.00" class="stat-value stat-value-ps" />
-        </ui:VisualElement>
-        
-        <!-- Полученные пакеты -->
-        <ui:VisualElement class="stats-grid">
-            <ui:Label name="packets-received-label" text="Packets Received: 0" class="stat-value" />
+            <ui:Label name="packets-sent-ps-label"      text="Packets/Sec (Sent): 0.00"     class="stat-value stat-value-ps" />
         </ui:VisualElement>
         <ui:VisualElement class="stats-grid">
-            <ui:Label name="packets-received-ps-label" text="Packets/Sec (Received): 0.00" class="stat-value stat-value-ps" />
-        </ui:VisualElement>
-        
-        <!-- Отправленные байты -->
-        <ui:VisualElement class="stats-grid">
-            <ui:Label name="bytes-sent-label" text="Bytes Sent: 0" class="stat-value" />
+            <ui:Label name="packets-received-label"     text="Packets Received: 0"          class="stat-value" />
         </ui:VisualElement>
         <ui:VisualElement class="stats-grid">
-            <ui:Label name="bytes-sent-ps-label" text="Bytes/Sec (Sent): 0.00" class="stat-value stat-value-ps" />
-        </ui:VisualElement>
-        
-        <!-- Полученные байты -->
-        <ui:VisualElement class="stats-grid">
-            <ui:Label name="bytes-received-label" text="Bytes Received: 0" class="stat-value" />
+            <ui:Label name="packets-received-ps-label"  text="Packets/Sec (Received): 0.00" class="stat-value stat-value-ps" />
         </ui:VisualElement>
         <ui:VisualElement class="stats-grid">
-            <ui:Label name="bytes-received-ps-label" text="Bytes/Sec (Received): 0.00" class="stat-value stat-value-ps" />
+            <ui:Label name="bytes-sent-label"           text="Bytes Sent: 0"                class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-sent-ps-label"        text="Bytes/Sec (Sent): 0.00"       class="stat-value stat-value-ps" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-received-label"       text="Bytes Received: 0"            class="stat-value" />
+        </ui:VisualElement>
+        <ui:VisualElement class="stats-grid">
+            <ui:Label name="bytes-received-ps-label"    text="Bytes/Sec (Received): 0.00"   class="stat-value stat-value-ps" />
         </ui:VisualElement>
     </ui:VisualElement>
+
 </ui:UXML>

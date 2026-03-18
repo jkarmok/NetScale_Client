@@ -1,17 +1,245 @@
- 
- 
+/* =========================================================
+   ABILITY JOYSTICK  —  aj-* classes
+   All children use position:absolute so they layer on top
+   of the joystick background without affecting its layout.
+   The joystick thumb (InnerJoystickImage) is always brought
+   to front by Joystick.RebuildInner(), so it stays on top.
+   ========================================================= */
+
+/* Visual decoration only — size/position stay in inline style on the element */
+.ability-joystick {
+    border-width: 2.5px;
+    border-color: rgba(80, 140, 220, 0.7);
+    background-color: rgba(10, 12, 30, 0.75);
+    overflow: hidden;
+}
+
+/* Ultimate — gold border override */
+.ability-joystick--ult {
+    border-color: rgba(255, 200, 50, 0.85);
+    border-width: 3px;
+}
+
+/* ── Skill icon background layer ─────────────────────── */
+.aj-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+}
+
+/* ── Cooldown sweep overlay ──────────────────────────── */
+/* Grows from the bottom; height = CooldownProgress * 100% */
+.aj-cd-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;           /* set from C#: Length.Percent(progress*100) */
+    background-color: rgba(0, 0, 0, 0.65);
+    /* clipped by parent overflow:hidden — no need for explicit border-radius */
+}
+
+/* ── Cooldown seconds text ───────────────────────────── */
+.aj-cd-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -unity-text-align: middle-center;
+    font-size: 26px;
+    -unity-font-style: bold;
+    color: rgba(255, 255, 255, 0.95);
+    display: none;        /* shown from C# when CooldownRemaining > 0 */
+}
+
+/* ── Mana cost badge ─────────────────────────────────── */
+.aj-mana-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 22px;
+    background-color: rgba(20, 50, 160, 0.72);
+    align-items: center;
+    justify-content: center;
+}
+
+.aj-mana-label {
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgba(160, 210, 255, 1.0);
+}
+
+/* ── "Cannot activate" overlay ───────────────────────── */
+.aj-unavailable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.52);
+    display: none;        /* toggled from C# */
+}
+
+/* ── Cast progress overlay ────────────────────────────── */
+/* Заполняется снизу вверх, поверх CD-оверлея.             */
+/* height = castProgress * 100% (set from C#)              */
+.aj-cast-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background-color: rgba(255, 200, 40, 0.45);
+    display: none;        /* shown from C# when castProgress > 0 */
+}
+
+/* ── Cast time remaining label ────────────────────────── */
+.aj-cast-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -unity-text-align: middle-center;
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgba(255, 230, 100, 0.95);
+    display: none;        /* shown from C# when casting */
+}
+
+/* ── Charge ring ──────────────────────────────────────── */
+/* border-width растёт от 0 до 6px по chargeProgress (C#) */
+.aj-charge-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-width: 0px;
+    border-color: rgba(80, 220, 255, 0.9);
+    display: none;        /* shown from C# when chargeElapsed > 0 */
+}
+
+/* =========================================================
+   PLAYER STATS  (top-left)
+   ========================================================= */
+
+.player-stats {
+    position: absolute;
+    top: 2%;
+    left: 1.5%;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.stats-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.player-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 36px;
+    background-color: rgba(20, 20, 40, 0.85);
+    border-width: 3px;
+    border-color: rgba(100, 180, 255, 0.7);
+    margin-right: 10px;
+    overflow: hidden;
+}
+
+.avatar-border {
+    width: 100%;
+    height: 100%;
+    border-radius: 36px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.bars-column {
+    flex-direction: column;
+    justify-content: center;
+}
+
+.bar-wrapper {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.bar-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    margin-right: 6px;
+}
+
+.hp-icon   { background-color: #e84444; }
+.mana-icon { background-color: #4488ee; }
+
+.bar-track {
+    width: 200px;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.55);
+    border-radius: 10px;
+    overflow: hidden;
+    border-width: 1.5px;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.hp-fill {
+    width: 100%;
+    background-color: rgba(220, 50, 50, 0.9);
+    border-right-width: 2px;
+    border-right-color: rgba(255, 120, 120, 0.6);
+}
+
+.mana-fill {
+    width: 100%;
+    background-color: rgba(50, 100, 230, 0.9);
+    border-right-width: 2px;
+    border-right-color: rgba(120, 160, 255, 0.6);
+}
+
+.bar-label {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -unity-text-align: middle-center;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* =========================================================
+   EXISTING — beating heart / right block / debug panel
+   ========================================================= */
+
 .beating_heart_label {
     flex-grow: 1;
-    position: relative; 
+    position: relative;
     font-size: 44px;
     color: whitesmoke;
 }
+
 .beating_heart_value {
     flex-grow: 1;
-    position: relative; 
+    position: relative;
     font-size: 44px;
     color: whitesmoke;
 }
+
 .right_block {
     position: absolute;
     top: 2%;
@@ -20,17 +248,19 @@
     height: auto;
     flex-direction: row;
 }
-.bottom_block{
-    justify-content: flex-end; 
+
+.bottom_block {
+    justify-content: flex-end;
     height: 100%;
     margin: 0;
 }
-.jump_button{
+
+.jump_button {
     -unity-text-align: middle-center;
     width: 100%;
     height: 50%;
     margin: 0;
-    background-color: rgba(154,187,255,0.05);
+    background-color: rgba(154, 187, 255, 0.05);
 }
 
 .entities-stats-container {
@@ -39,8 +269,10 @@
     border-radius: 6px;
     margin: 8px;
     min-width: 200px;
-    border: 1px solid #333;
+    border-width: 1px;
+    border-color: #333;
     width: 20%;
+    top: 10%;
     position: absolute;
 }
 
@@ -49,75 +281,40 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    border-bottom: 1px solid #444;
+    margin-top: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: #444;
     padding-bottom: 6px;
 }
 
 .header-label {
     font-size: 14px;
-    font-weight: bold;
+    -unity-font-style: bold;
     color: #ffffff;
 }
 
 .status-indicator {
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.status-normal {
-    background-color: #4CAF50; /* Зеленый - норма */
-}
-
-.status-warning {
-    background-color: #FFC107; /* Желтый - предупреждение */
-    animation: pulse-warning 2s infinite;
-}
-
-.status-critical {
-    background-color: #F44336; /* Красный - критично */
-    animation: pulse-critical 1s infinite;
-}
+.status-normal   { background-color: #4CAF50; }
+.status-warning  { background-color: #FFC107; }
+.status-critical { background-color: #F44336; }
 
 .stats-grid {
-    display: flex;
     flex-direction: column;
-    gap: 2px;
+    margin-bottom: 2px;
 }
 
 .stat-value {
     font-size: 11px;
-    font-family: 'Consolas', monospace;
     color: #e0e0e0;
 }
 
-.text-normal {
-    color: #4CAF50 !important;
-    font-weight: bold;
-}
-
-.text-warning {
-    color: #FFC107 !important;
-    font-weight: bold;
-}
-
-.text-critical {
-    color: #F44336 !important;
-    font-weight: bold;
-}
-
-@keyframes pulse-warning {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-}
-
-@keyframes pulse-critical {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-/* Стили для статистики в секунду */
 .stat-value-ps {
     font-size: 12px;
     opacity: 0.8;
@@ -125,19 +322,6 @@
     color: #cccccc;
 }
 
-.stats-grid {
-    flex-direction: column;
-    margin-bottom: 2px;
-}
-
-.header-row {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #444444;
-}
-
-.header-label {
-    font-size: 14px;
-    font-weight: bold;
-    color: #ffffff;
-}
+.text-normal   { color: #4CAF50; -unity-font-style: bold; }
+.text-warning  { color: #FFC107; -unity-font-style: bold; }
+.text-critical { color: #F44336; -unity-font-style: bold; }

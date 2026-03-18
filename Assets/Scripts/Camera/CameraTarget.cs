@@ -1,15 +1,17 @@
-using Camera;
 using UnityEngine;
 
-public class CameraTarget : MonoBehaviour, ICameraTarget
+namespace NetScaleClient.Camera
 {
-    [SerializeField] private bool _owned = false;
-
-    public void ChangeOwned()
+    public class CameraTarget : MonoBehaviour, ICameraTarget
     {
-        _owned = true;
-    }
+        [SerializeField] private bool _owned = false;
 
-    public bool Owned => _owned;
-    public Transform Pivot => transform;
+        public void ChangeOwned()
+        {
+            _owned = true;
+        }
+
+        public bool Owned => _owned;
+        public Transform Pivot => transform;
+    }
 }

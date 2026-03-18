@@ -47,7 +47,7 @@ namespace Installers
             builder.RegisterInstance(_serializer);
             builder.RegisterInstance(_clientToProxy);
             builder.Register<MemoryPackBinarySerializer>(Lifetime.Singleton).As<IBinarySerializer>();
-            _gameLoop.Updated += OnUpdated;
+            _gameLoop.Tickeed += OnUpdated;
         }
 
         private void OnUpdated(float deltaTime)
@@ -67,7 +67,7 @@ namespace Installers
  
         public void Dispose()
         {
-            _gameLoop.Updated -= OnUpdated;
+            _gameLoop.Tickeed -= OnUpdated;
             _clientToProxy.Dispose();
         }
     }

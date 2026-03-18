@@ -1,0 +1,210 @@
+// Fog of War Compute Shader - Optimized Version
+// Поддержка плавного затухания и оптимизация для высокой производительности
+
+#pragma kernel ClearVision
+#pragma kernel UpdateVision
+#pragma kernel DecayVision
+#pragma kernel BlurVision
+#pragma kernel CompositeOutput
+
+// Константы
+#define THREAD_SIZE 8
+#define MAX_SOURCES 256
+
+// Структура источника видимости
+struct VisionSource
+{
+    float x;          // Normalized position (0-1)
+    float y;          // Normalized position (0-1)
+    float radius;     // Normalized radius (0-1)
+    float intensity;  // Strength (0-1)
+};
+
+// Буферы и текстуры
+RWTexture2D<float> _VisionTexture;
+RWTexture2D<float> _ExploredTexture;
+RWTexture2D<float4> _OutputTexture;
+Texture2D<float> _InputTexture;
+RWTexture2D<float> _OutputFloat;
+
+StructuredBuffer<VisionSource> _VisionSources;
+
+// Параметры
+int _Resolution;
+float2 _MapSize;
+float _DecayRate;
+float _SmoothRadius;
+int _SourceCount;
+int _BlurDirection; // 0 = horizontal, 1 = vertical
+float _FalloffExponent; // Новый параметр для контроля плавности затухания
+float _TransitionSmoothness;
+float4 _FogColor;
+float4 _ExploredColor;
+float4 _VisibleColor;
+
+// Улучшенная функция плавного затухания
+float smoothVisionFalloff(float normalizedDist, float exponent)
+{
+    // Использование настраиваемой экспоненты для более плавного перехода
+    float t = saturate(1.0 - normalizedDist);
+    // Применяем несколько методов сглаживания для максимальной плавности
+    t = t * t * (3.0 - 2.0 * t); // smoothstep
+    t = pow(t, exponent); // Дополнительный контроль
+    return t;
+}
+
+// Kernel: Очистка карты видимости
+[numthreads(THREAD_SIZE, THREAD_SIZE, 1)]
+void ClearVision(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution)
+        return;
+        
+    _VisionTexture[id.xy] = 0.0;
+}
+
+// Kernel: Затухание видимости
+[numthreads(THREAD_SIZE, THREAD_SIZE, 1)]
+void DecayVision(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution)
+        return;
+        
+    float currentVision = _VisionTexture[id.xy];
+    _VisionTexture[id.xy] = max(0.0, currentVision - _DecayRate);
+}
+
+// Kernel: Обновление видимости от источников (оптимизированная версия)
+[numthreads(THREAD_SIZE, THREAD_SIZE, 1)]
+void UpdateVision(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution)
+        return;
+    
+    float2 pixelPos = float2(id.xy) / float(_Resolution);
+    float maxVision = _VisionTexture[id.xy];
+    
+    // Проверка всех источников видимости
+    [loop]
+    for (int i = 0; i < _SourceCount; i++)
+    {
+        VisionSource source = _VisionSources[i];
+        
+        float2 diff = pixelPos - float2(source.x, source.y);
+        float dist = length(diff);
+        
+        // Используем расширенный радиус для более плавного затухания
+        float extendedRadius = source.radius * 1.2; // 20% больше для плавности
+        
+        if (dist <= extendedRadius)
+        {
+            // Плавное затухание от центра к краю с использованием улучшенной функции
+            float normalizedDist = dist / source.radius;
+            float visionStrength = smoothVisionFalloff(normalizedDist, _FalloffExponent) * source.intensity;
+            
+            maxVision = max(maxVision, visionStrength);
+        }
+    }
+    
+    _VisionTexture[id.xy] = maxVision;
+    
+    // Обновление explored map с более низким порогом для плавности
+    if (maxVision > 0.05)
+    {
+        _ExploredTexture[id.xy] = max(_ExploredTexture[id.xy], maxVision * 0.3);
+    }
+}
+
+// Kernel: Separable Gaussian Blur для сглаживания (оптимизированная версия)
+[numthreads(THREAD_SIZE, THREAD_SIZE, 1)]
+void BlurVision(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution)
+        return;
+ 
+    int radius = (int)_SmoothRadius;
+    float totalWeight = 0.0;
+    float blurredValue = 0.0;
+    
+    // Оптимизированный Гауссовский blur с меньшим количеством сэмплов
+    float sigma = radius / 2.5;
+    float twoSigmaSq = 2.0 * sigma * sigma;
+    
+    [unroll(15)]
+    for (int i = -radius; i <= radius; i++)
+    {
+        int2 samplePos;
+        
+        if (_BlurDirection == 0) // Horizontal
+        {
+            samplePos = int2(clamp((int)id.x + i, 0, _Resolution - 1), id.y);
+        }
+        else // Vertical
+        {
+            samplePos = int2(id.x, clamp((int)id.y + i, 0, _Resolution - 1));
+        }
+        
+        // Гауссовский вес
+        float weight = exp(-(i * i) / twoSigmaSq);
+        
+        blurredValue += _InputTexture.Load(int3(samplePos, 0)) * weight;
+        totalWeight += weight;
+    }
+    
+    _OutputFloat[id.xy] = blurredValue / totalWeight;
+}
+
+// Улучшенная функция плавных переходов
+float smoothTransition(float t, float smoothness)
+{
+    // Используем сигмоидную функцию для плавных переходов
+    t = saturate(t);
+    
+    if (smoothness > 1.0)
+    {
+        // Экспоненциальная плавность
+        return 1.0 - pow(1.0 - t, smoothness);
+    }
+    else if (smoothness < 1.0)
+    {
+        // Степенная функция для более резких переходов
+        return pow(t, 1.0 / smoothness);
+    }
+    
+    // Линейный
+    return t;
+}
+
+// И обновите CompositeOutput:
+[numthreads(THREAD_SIZE, THREAD_SIZE, 1)]
+void CompositeOutput(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)_Resolution || id.y >= (uint)_Resolution)
+        return;
+    
+    float vision = _VisionTexture[id.xy];
+    float explored = _ExploredTexture[id.xy];
+    
+    float4 finalColor;
+    
+    // Трехслойная система с плавными переходами
+    // 1. Базовый слой - туман
+    finalColor = _FogColor;
+    
+    // 2. Добавляем исследованный слой с плавностью
+    if (explored > 0.001)
+    {
+        float exploredBlend = smoothTransition(explored, _TransitionSmoothness);
+        finalColor = lerp(finalColor, _ExploredColor, exploredBlend);
+    }
+    
+    // 3. Добавляем видимый слой с плавностью
+    if (vision > 0.001)
+    {
+        float visionBlend = smoothTransition(vision, _TransitionSmoothness);
+        // Видимые области должны полностью перекрывать предыдущие слои
+        finalColor = lerp(finalColor, _VisibleColor, visionBlend);
+    }
+    
+    _OutputTexture[id.xy] = finalColor;
+}

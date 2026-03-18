@@ -465,6 +465,7 @@ MonoBehaviour:
   - {fileID: -6288072647309666549}
   - {fileID: 7518938298396184218}
   - {fileID: -1410297666881709256}
+  - {fileID: 1303221043188509964}
 --- !u!114 &853819529557874667
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -564,6 +565,37 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.55
   highlightsEnd:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &1303221043188509964
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6adae1d6d873a6b45a52aafdad662865, type: 3}
+  m_Name: FogOfWarVolume
+  m_EditorClassIdentifier: 
+  active: 1
+  unexploredColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.1, g: 0.1, b: 0.15, a: 1}
+  exploredColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.3, g: 0.3, b: 0.4, a: 0.8}
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  edgeSoftness:
+    m_OverrideState: 1
+    m_Value: 0.2
+  enableFog:
+    m_OverrideState: 1
+    m_Value: 1
+  downsampling:
     m_OverrideState: 1
     m_Value: 1
 --- !u!114 &1666464333004379222

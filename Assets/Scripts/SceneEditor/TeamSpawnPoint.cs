@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Game.SceneLoader;
+using Game.SceneLoader.Points;
+using UnityEngine;
 
 namespace SceneEditor
 {
@@ -17,7 +19,21 @@ namespace SceneEditor
             Gizmos.DrawCube(transform.position + Vector3.up * 2, 
                 new Vector3(1.5f, 0.5f, 1.5f));
         }
-    
+
+        public override void ToJson(ParseResult parseResult)
+        {
+            parseResult.TeamSpawnPoints.Add(new TeamSpawnPointDTO(){
+                TeamId = _teamId,
+                TeamName =_teamName,
+                MaxPlayers = _maxPlayers,
+                RespawnDelay = _respawnDelay,
+                Id = PointId,
+                Name = PointName,
+                Position = new System.Numerics.Vector3(transform.position.x, transform.position.y, transform.position.z),
+                Rotation = new System.Numerics.Vector3(transform.rotation.eulerAngles.x,  transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z)
+            });
+        }
+
         private Color GetTeamColor()
         {
             return _teamId switch
@@ -27,31 +43,6 @@ namespace SceneEditor
                 2 => Color.green,
                 3 => Color.yellow,
                 _ => Color.gray
-            };
-        }
-    
-        public override object ToJson()
-        {
-            return new {
-                _teamId,
-                _teamName,
-                _maxPlayers,
-                _respawnDelay,
-                id = PointId,
-                name = PointName,
-                position = new
-                {
-                    x = transform.position.x,
-                    y = transform.position.y,
-                    z = transform.position.z
-                },
-                rotation = new
-                {
-                    x = transform.rotation.eulerAngles.x,
-                    y = transform.rotation.eulerAngles.y,
-                    z = transform.rotation.eulerAngles.z
-                },
-                type = this.GetType().Name
             };
         }
     }

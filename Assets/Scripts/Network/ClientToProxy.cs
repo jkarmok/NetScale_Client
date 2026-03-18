@@ -47,7 +47,7 @@ namespace Network
             _apiInstance.Connected += OnConnected;
             _apiInstance.Disconnected += OnDisconnected;
         
-            _apiInstance.OnConnectionTimeout += () =>
+            _apiInstance.OnConnectionTimeout += (c) =>
             {
                 _logger.LogInformation($"Timeout");
             };

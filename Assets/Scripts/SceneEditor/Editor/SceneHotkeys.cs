@@ -10,7 +10,19 @@ namespace SceneEditor
         {
             CreatePointWithType<TeamSpawnPoint>();
         }
-    
+        
+        [MenuItem("Tools/Create/Team Base Point %&t")]
+        private static void CreateTeamBaseHotkey()
+        {
+            CreatePointWithType<TeamBasePoint>();
+        }
+        
+                
+        [MenuItem("Tools/Create/Wave CheckPoint %&t")]
+        private static void CreateWaveCheckPointHotkey()
+        {
+            CreatePointWithType<WaveCheckPoint>();
+        }
         [MenuItem("Tools/Create/Bot Spawn Point %&b")]
         private static void CreateBotSpawnHotkey()
         {

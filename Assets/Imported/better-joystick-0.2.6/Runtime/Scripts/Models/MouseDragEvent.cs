@@ -3,21 +3,26 @@ using UnityEngine.UIElements;
 
 namespace BetterJoystick.Runtime.Models
 {
-    public class MouseDragEvent
+    /// <summary>
+    /// Struct-based drag event passed from InnerJoystickImage to Joystick.
+    /// Using struct eliminates heap allocations on every pointer move.
+    /// Now uses IPointerEvent instead of IMouseEvent to support multi-touch.
+    /// </summary>
+    public readonly struct MouseDragEvent
     {
-        public IEventHandler Target { get; }
-        public Vector2 MousePosition { get; }
-        public Vector2 LocalMosePosition { get; }
-        public Vector2 DeltaMousePosition { get; }
-        public DragState State { get; }
+        public readonly IEventHandler Target;
+        public readonly Vector2 MousePosition;
+        public readonly Vector2 LocalMousePosition;
+        public readonly Vector2 DeltaMousePosition;
+        public readonly DragState State;
 
-        public MouseDragEvent(IMouseEvent eventBase, IEventHandler target, DragState state)
+        public MouseDragEvent(IPointerEvent pointerEvent, IEventHandler target, DragState state)
         {
-            Target = target;
-            State = state;
-            MousePosition = eventBase.mousePosition;
-            LocalMosePosition = eventBase.localMousePosition;
-            DeltaMousePosition = eventBase.mouseDelta;
+            Target             = target;
+            State              = state;
+            MousePosition      = pointerEvent.position;
+            LocalMousePosition = pointerEvent.localPosition;
+            DeltaMousePosition = pointerEvent.deltaPosition;
         }
     }
 }

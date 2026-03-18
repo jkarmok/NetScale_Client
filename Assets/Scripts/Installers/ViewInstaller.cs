@@ -21,14 +21,14 @@ namespace Installers
             var view = entity.GetComponent<IView>();
             view?.SpawnSetup(entityDto.ViewId, entityDto.SpartalOwnerId, entityDto.ProxyId, entityDto.TransformState,
                 new Vector3( entityDto.Position.X, entityDto.Position.Y, entityDto.Position.Z),
-                new Quaternion(entityDto.Rotation.X, entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W));
+                new Quaternion(entityDto.Rotation.X, entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W), owned);
         }
         private void OnEntityUpdated(NetworkEntity entity, EntityDto entityDto, bool owned)
         {
             var view = entity.GetComponent<IView>();
             view?.SpawnSetup(entityDto.ViewId, entityDto.SpartalOwnerId, entityDto.ProxyId, entityDto.TransformState,
                 new Vector3( entityDto.Position.X, entityDto.Position.Y, entityDto.Position.Z),
-                new Quaternion(entityDto.Rotation.X, entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W));
+                new Quaternion(entityDto.Rotation.X, entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W), owned);
             
         }
         

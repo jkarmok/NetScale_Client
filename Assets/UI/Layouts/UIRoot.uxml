@@ -18,7 +18,7 @@
                     <engine:Label text="Server Address" class="input-label" />
                     <engine:TextField name="ConnectionInput" value="192.168.3.4:7777" class="server-input" />
                 </engine:VisualElement>
-                <engine:VisualElement name="ErrorContainer" class="error-container" />
+                <engine:VisualElement name="NotificationContainer" class="notification-container" />
                 <engine:Button name="ConnectionButton" text="CONNECT" class="connect-button" />
                 <engine:VisualElement class="status-container">
                     <engine:VisualElement class="status-dot" />

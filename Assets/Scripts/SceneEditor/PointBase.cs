@@ -1,4 +1,4 @@
-using UnityEngine;
+using Game.SceneLoader.Points;
 
 namespace SceneEditor
 {
@@ -8,11 +8,11 @@ namespace SceneEditor
     [Serializable]
     public abstract class PointBase : MonoBehaviour
     {
-        [Header("Base Settings")] private string _pointId = Guid.NewGuid().ToString();
+        [Header("Base Settings")] private Guid _pointId = Guid.NewGuid();
         [SerializeField] private string _pointName = "New Point";
         [SerializeField] private Color _gizmoColor = Color.white;
         [SerializeField] private float _gizmoRadius = 1f;
-        public string PointId => _pointId;
+        public Guid PointId => _pointId;
         public string PointName
         {
             get => _pointName;
@@ -38,23 +38,6 @@ namespace SceneEditor
             Gizmos.DrawWireSphere(transform.position, _gizmoRadius * 1.2f);
         }
 
-        public virtual object ToJson() => new
-        {
-            id = _pointId,
-            name = _pointName,
-            position = new
-            {
-                x = transform.position.x,
-                y = transform.position.y,
-                z = transform.position.z
-            },
-            rotation = new
-            {
-                x = transform.rotation.eulerAngles.x,
-                y = transform.rotation.eulerAngles.y,
-                z = transform.rotation.eulerAngles.z
-            },
-            type = this.GetType().Name
-        };
+        public abstract void ToJson(Game.SceneLoader.ParseResult parseResult);
     }
 }

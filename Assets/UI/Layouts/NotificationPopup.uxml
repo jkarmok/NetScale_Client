@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="NotificationRoot" class="popup-notification">
+        <ui:VisualElement class="notification-header">
+            <ui:VisualElement class="header-left">
+                <ui:VisualElement class="notification-type-icon">
+                    <ui:Label name="TypeIcon" text="!" />
+                </ui:VisualElement>
+                <ui:Label name="NotificationTitle" class="notification-title" text="Title" />
+            </ui:VisualElement>
+            <ui:Button name="CloseButton" text="✕" class="notification-close-button" />
+        </ui:VisualElement>
+        <ui:Label name="NotificationText" class="popup-notification-text" text="Notification message" />
+    </ui:VisualElement>
+</ui:UXML>

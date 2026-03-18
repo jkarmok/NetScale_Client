@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Global Volume (1) Profile
+  m_EditorClassIdentifier: 
+  components: []
+--- !u!114 &9002942136424017463
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6adae1d6d873a6b45a52aafdad662865, type: 3}
+  m_Name: FogOfWarVolume
+  m_EditorClassIdentifier: 
+  active: 1
+  <displayName>k__BackingField: 
+  unexploredColor:
+    <fieldHash>k__BackingField: 142838224
+    m_OverrideState: 1
+    m_Value:
+      r: 0.1
+      g: 0.1
+      b: 0.15
+      a: 1
+  exploredColor:
+    <fieldHash>k__BackingField: 382188616
+    m_OverrideState: 1
+    m_Value:
+      r: 0.3
+      g: 0.3
+      b: 0.4
+      a: 0.8
+  intensity:
+    <fieldHash>k__BackingField: 621539008
+    m_OverrideState: 1
+    m_Value: 1
+  edgeSoftness:
+    <fieldHash>k__BackingField: 860889400
+    m_OverrideState: 1
+    m_Value: 0.2
+  enableFog:
+    <fieldHash>k__BackingField: 1100239792
+    m_OverrideState: 1
+    m_Value: 1
+  downsampling:
+    <fieldHash>k__BackingField: 1339590184
+    m_OverrideState: 1
+    m_Value: 1

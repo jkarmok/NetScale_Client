@@ -48,6 +48,10 @@ public class PerformanceMonitor : MonoBehaviour
 
     private void Awake()
     {
+        Application.targetFrameRate = 9999;
+        QualitySettings.vSyncCount = 0;   // Выключаем VSync
+        Application.runInBackground = true;
+        
         _frameTimeSamples = new float[_graphSampleCount];
         _allocSamples = new float[_graphSampleCount];
         _sb = new StringBuilder(256);

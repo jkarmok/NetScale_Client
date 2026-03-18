@@ -8,46 +8,27 @@ namespace BetterJoystick.Runtime.JoystickRect.Models
     [Serializable]
     public class RectangleRect : IJoystickRect
     {
-        private VisualElement _root;
+        private readonly VisualElement _root;
 
-        public RectangleRect(VisualElement root)
-        {
-            _root = root;
-        }
+        public RectangleRect(VisualElement root) => _root = root;
 
-        public float Radius => Mathf.Max(_root.layout.width, _root.layout.height) / 2f;
-
+        public float   Radius => Mathf.Max(_root.layout.width, _root.layout.height) / 2f;
         public Vector2 Center => _root.layout.center;
 
-        public bool InRange(Vector2 point)
-        {
-            return _root.layout.Contains(point);
-        }
+        public bool InRange(Vector2 point) => _root.layout.Contains(point);
 
         public Vector2 GetPointOnEdge(Vector2 point)
         {
-            return GetClosestPointOnRectEdge(_root.layout, point);
-        }
+            Rect    rect       = _root.layout;
+            Vector2 center     = rect.center;
+            Vector2 direction  = point - center;
+            float   halfWidth  = rect.width  / 2f;
+            float   halfHeight = rect.height / 2f;
 
-        private Vector2 GetClosestPointOnRectEdge(Rect rect, Vector2 point)
-        {
-            // Get the center point of the rectangle
-            var center = rect.center;
-    
-            // Calculate the half-width and half-height of the rectangle
-            var halfWidth = rect.width / 2;
-            var halfHeight = rect.height / 2;
-    
-            // Calculate the distance between the center point and the outer point
-            var direction = point - center;
-    
-            // Calculate the distance between the center point and the closest point on the edge of the rectangle
-            var deltaX = Mathf.Clamp(direction.x, -halfWidth, halfWidth);
-            var deltaY = Mathf.Clamp(direction.y, -halfHeight, halfHeight);
-            var closestPoint = center + new Vector2(deltaX, deltaY);
-    
-            return closestPoint;
-        }
+            float dx = Mathf.Clamp(direction.x, -halfWidth,  halfWidth);
+            float dy = Mathf.Clamp(direction.y, -halfHeight, halfHeight);
 
+            return center + new Vector2(dx, dy);
+        }
     }
 }

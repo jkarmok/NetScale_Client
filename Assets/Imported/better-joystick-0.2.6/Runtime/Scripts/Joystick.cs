@@ -1,4 +1,5 @@
-﻿using BetterJoystick.Runtime.JoystickRect.Interfaces;
+﻿using System;
+using BetterJoystick.Runtime.JoystickRect.Interfaces;
 using BetterJoystick.Runtime.JoystickRect.Models;
 using BetterJoystick.Runtime.Models;
 using UnityEngine;
@@ -9,160 +10,261 @@ namespace BetterJoystick.Runtime
 {
     public class Joystick : VisualElement, INotifyValueChanged<Vector2>
     {
-       
-        
         [Preserve]
-        public new class UxmlFactory : UxmlFactory<Joystick, UxmlTraits>
-        {
-        }
+        public new class UxmlFactory : UxmlFactory<Joystick, UxmlTraits> { }
 
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
-            private readonly UxmlBoolAttributeDescription _normalizeDescription =
+            private readonly UxmlBoolAttributeDescription _normalizeAttr =
                 new UxmlBoolAttributeDescription { name = "Normalize", defaultValue = false };
 
-            private readonly UxmlBoolAttributeDescription _recenterDescription =
+            private readonly UxmlBoolAttributeDescription _recenterAttr =
                 new UxmlBoolAttributeDescription { name = "Recenter", defaultValue = true };
-            
-            private readonly UxmlBoolAttributeDescription _centerByPressDescription =
+
+            private readonly UxmlBoolAttributeDescription _centerByPressAttr =
                 new UxmlBoolAttributeDescription { name = "CenterByPress", defaultValue = false };
-            
+
             public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
             {
                 base.Init(ve, bag, cc);
-                var ate = ve as Joystick;
+                var joystick = (Joystick)ve;
 
-                ate.Normalize = _normalizeDescription.GetValueFromBag(bag, cc);
-                ate.Recenter = _recenterDescription.GetValueFromBag(bag, cc);
-                ate.CenterByPress = _centerByPressDescription.GetValueFromBag(bag, cc);
-                ate.ParamsChanged();
+                joystick.Normalize     = _normalizeAttr.GetValueFromBag(bag, cc);
+                joystick.Recenter      = _recenterAttr.GetValueFromBag(bag, cc);
+                joystick.CenterByPress = _centerByPressAttr.GetValueFromBag(bag, cc);
+                joystick.RebuildInner();
             }
         }
 
-        private void ParamsChanged()
-        {
-            _joystickInner = new InnerJoystickImage(CenterByPress);
-            _joystickInner.DragEvent += OnDragEvent;
-            Add(_joystickInner);
-            _joystickInner.BringToFront();
-            RegisterCallback<GeometryChangedEvent>(OnAttached);
-            _joystickRect = new CircleRect(this);
-            Value = Vector2.zero;
-        }
-
-        public bool CenterByPress { get; set; }  = false;
-
-        /// <summary>
-        /// Normalizing output value in JoystickEvent or you can set this in UIBuilder
-        /// </summary>
-        public bool Normalize { get; set; } = false;
-
-        /// <summary>
-        /// Allows to re-centering inner joystick after user release or you can set this in UIBuilder
-        /// </summary>
-        public bool Recenter { get; set; } = true;
-
         public const string StyleClassName = "better-joystick";
 
-        private InnerJoystickImage _joystickInner;
-        private IJoystickRect _joystickRect;
+        public event Action<Vector2> Started;
+        public event Action<Vector2> Performed;
+        public event Action<Vector2> Completed;
+
+        public bool    Normalize     { get; set; } = false;
+        public bool    Recenter      { get; set; } = true;
+        public bool    CenterByPress { get; set; } = false;
+        public bool Interactable
+        {
+            get => _interactable;
+            set
+            {
+                if (_interactable == value) return;
+                _interactable = value;
+                if (!_interactable && _isActive)
+                    HandleRelease();   // force-release if locked mid-drag
+            }
+        }
+        private bool _interactable = true;
+        
+        private const float Threshold = 0.01f;
+        public Vector2 Value { get; private set; }
+
+        private InnerJoystickImage   _inner;
+        private IJoystickRect        _joystickRect;
+
+        // ─── Новые поля для Update-loop ──────────────────────────────────────────
+        private bool                 _isActive;        // джойстик зажат
+        private IVisualElementScheduledItem _updateLoop; // "Update" через scheduler
 
         public Joystick()
         {
             AddToClassList(StyleClassName);
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/JoystickStyles"));
- 
+            RebuildInner();
         }
 
-        private void OnAttached(GeometryChangedEvent geometryChangedEvent)
+        public bool HasValue(out Vector2 position)
         {
-            PlaceJoystickAtCenter();
+            position = Value;
+            return position.magnitude > Threshold;
         }
 
-        private void OnDragEvent(MouseDragEvent obj)
-        {
-            Vector2 newValue;
-            Vector2 prevValue;
-            if (obj.State == DragState.AtRest)
-            {
-                if (!Recenter) return;
-                PlaceJoystickAtCenter();
-                newValue = Vector2.zero;
-                prevValue = Value;
-            }
-            else
-            {
-                var centering = GetCentering();
-                var mousePosition = obj.MousePosition;
-                if (!_joystickRect.InRange(obj.MousePosition))
-                {
-                    mousePosition = _joystickRect.GetPointOnEdge(obj.MousePosition);
-                }
+        // ─── Build ───────────────────────────────────────────────────────────────
 
-                var panelPosition = this.WorldToLocal(mousePosition - centering);
-                _joystickInner.style.top = panelPosition.y;
-                _joystickInner.style.left = panelPosition.x;
-                newValue = mousePosition - _joystickRect.Center;
-                prevValue = Value;
+        internal void RebuildInner()
+        {
+            StopUpdateLoop(); // на случай пересборки
+
+            if (_inner != null)
+            {
+                _inner.DragEvent = null;
+                Remove(_inner);
             }
 
-            if (Normalize)
+            _inner           = new InnerJoystickImage(CenterByPress);
+            _inner.DragEvent = OnDragEvent;
+            Add(_inner);
+            _inner.BringToFront();
+
+            _joystickRect = new CircleRect(this);
+            Value         = Vector2.zero;
+
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        // ─── Update loop ─────────────────────────────────────────────────────────
+
+        private void StartUpdateLoop()
+        {
+            if (_updateLoop != null) return;
+
+            // intervalMs = 0 → каждый кадр (аналог Update)
+            _updateLoop = schedule.Execute(OnUpdate).Every(0);
+        }
+
+        private void StopUpdateLoop()
+        {
+            _updateLoop?.Pause();
+            _updateLoop = null;
+        }
+
+        private void OnUpdate()
+        {
+            if (_isActive)
+                Performed?.Invoke(Value);
+        }
+
+        // ─── Geometry ────────────────────────────────────────────────────────────
+
+        private void OnGeometryChanged(GeometryChangedEvent _) => PlaceThumbAtCenter();
+
+        private void PlaceThumbAtCenter()
+        {
+            var outer = resolvedStyle;
+            float halfW = (outer.width  - GetLeftOffset(outer)) / 2f;
+            float halfH = (outer.height - GetTopOffset(outer))  / 2f;
+
+            var thumb = _inner.resolvedStyle;
+            float thumbHalfW = (thumb.width  + GetLeftOffset(thumb)) / 2f;
+            float thumbHalfH = (thumb.height + GetTopOffset(thumb))  / 2f;
+
+            _inner.style.left = halfW - thumbHalfW;
+            _inner.style.top  = halfH - thumbHalfH;
+        }
+
+        private Vector2 GetThumbHalfSize()
+        {
+            var s = _inner.resolvedStyle;
+            return new Vector2(
+                (s.width  + GetLeftOffset(s)) / 2f,
+                (s.height + GetTopOffset(s))  / 2f
+            );
+        }
+
+        private static float GetTopOffset(IResolvedStyle s)
+            => s.paddingTop  + s.marginTop  + s.borderTopWidth;
+
+        private static float GetLeftOffset(IResolvedStyle s)
+            => s.paddingLeft + s.marginLeft + s.borderLeftWidth;
+
+        // ─── Drag handling ───────────────────────────────────────────────────────
+
+        private void OnDragEvent(MouseDragEvent drag)
+        {
+            if (!_interactable) return;
+            
+            switch (drag.State)
             {
-                var t = Mathf.InverseLerp(0, _joystickRect.Radius, newValue.magnitude);
-                newValue = newValue.normalized * t;
+                case DragState.AtRest:
+                    HandleRelease();
+                    break;
+
+                case DragState.Ready:
+                    if (CenterByPress)
+                    {
+                        HandleMove(drag, firePerformed: false);
+                        _isActive = true;
+                        StartUpdateLoop();
+                        Started?.Invoke(Value);
+                    }
+                    break;
+
+                case DragState.Started:
+                    HandleMove(drag, firePerformed: false);
+                    _isActive = true;
+                    StartUpdateLoop();
+                    Started?.Invoke(Value);
+                    break;
+
+                case DragState.Dragging:
+                    HandleMove(drag, firePerformed: false); // Performed теперь в OnUpdate
+                    break;
             }
-
-            using (var pulled = JoystickEvent.GetPooled(prevValue, newValue))
-            {
-                pulled.target = this;
-                panel.visualTree.SendEvent(pulled);
-                Value = newValue;
-            }
         }
 
-        private Vector2 GetCentering()
+        private void HandleRelease()
         {
-            var innerResolvedStyle = _joystickInner.resolvedStyle;
-            var styleHeight = (innerResolvedStyle.height + GetTopOffset(innerResolvedStyle)) / 2f;
-            var styleWidth = (innerResolvedStyle.width + GetLeftOffset(innerResolvedStyle)) / 2f;
-            return new Vector2(styleHeight, styleWidth);
+            _isActive = false;
+            StopUpdateLoop();
+
+            if (Recenter)
+                PlaceThumbAtCenter();
+
+            DispatchValueChange(previousValue: Value, newValue: Vector2.zero);
+            Completed?.Invoke(Vector2.zero);
         }
 
-        private void PlaceJoystickAtCenter()
+        private void HandleMove(MouseDragEvent drag, bool firePerformed)
         {
-            var centering = GetCentering();
-            var joystickResolvedStyle = resolvedStyle;
-            _joystickInner.style.top = (joystickResolvedStyle.height - GetTopOffset(joystickResolvedStyle)) / 2f - centering.y;
-            _joystickInner.style.left = (joystickResolvedStyle.width - GetLeftOffset(joystickResolvedStyle)) / 2f - centering.x;
+            Vector2 mousePos = drag.MousePosition;
+
+            if (!_joystickRect.InRange(mousePos))
+                mousePos = _joystickRect.GetPointOnEdge(mousePos);
+
+            Vector2 thumbOffset = GetThumbHalfSize();
+            Vector2 localPos    = this.WorldToLocal(mousePos);
+            _inner.style.left = localPos.x - thumbOffset.x;
+            _inner.style.top  = localPos.y - thumbOffset.y;
+
+            Vector2 rawValue = mousePos - _joystickRect.Center;
+            rawValue.y = -rawValue.y;
+
+            Vector2 newValue = Normalize
+                ? rawValue.normalized * Mathf.InverseLerp(0f, _joystickRect.Radius, rawValue.magnitude)
+                : rawValue;
+
+            DispatchValueChange(previousValue: Value, newValue: newValue);
+
+            if (firePerformed)
+                Performed?.Invoke(Value);
         }
 
-        private float GetTopOffset(IResolvedStyle resolved)
-        {
-            return resolved.paddingTop + resolved.marginTop + resolved.borderTopWidth;
-        }
-
-        private float GetLeftOffset(IResolvedStyle resolved)
-        {
-            return resolved.paddingLeft + resolved.marginLeft + resolved.borderLeftWidth;
-        }
-
-        public void SetJoystickRect(IJoystickRect joystickRect)
-        {
-            _joystickRect = joystickRect;
-            PlaceJoystickAtCenter();
-        }
-
-        public void SetValueWithoutNotify(Vector2 newValue)
+        private void DispatchValueChange(Vector2 previousValue, Vector2 newValue)
         {
             Value = newValue;
+
+            using (var evt = JoystickEvent.GetPooled(previousValue, newValue))
+            {
+                evt.target = this;
+                panel?.visualTree.SendEvent(evt);
+            }
         }
 
-        public Vector2 Value { get; private protected set; }
+        // ─── INotifyValueChanged ─────────────────────────────────────────────────
 
         Vector2 INotifyValueChanged<Vector2>.value
         {
             get => Value;
-            set => Value = value;
+            set
+            {
+                if (Value == value) return;
+                using (var evt = JoystickEvent.GetPooled(Value, value))
+                {
+                    evt.target = this;
+                    panel?.visualTree.SendEvent(evt);
+                }
+                Value = value;
+            }
+        }
+
+        public void SetValueWithoutNotify(Vector2 newValue) => Value = newValue;
+
+        public void SetJoystickRect(IJoystickRect joystickRect)
+        {
+            _joystickRect = joystickRect;
+            PlaceThumbAtCenter();
         }
     }
 }

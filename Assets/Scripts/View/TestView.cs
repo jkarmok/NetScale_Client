@@ -21,9 +21,9 @@ namespace View
         };
 
         [SerializeField] private MeshRenderer _meshRenderer;
- 
+        
         public void SpawnSetup(byte viewId, int spatialOwnerId, int entityProxyId,
-            TransformState entityTransformState, Vector3 position, Quaternion rotation)
+            TransformState entityTransformState, Vector3 position, Quaternion rotation, bool owned)
         {
             _meshRenderer.material.SetColor(BASE_COLOR, _colors[Mathf.Abs(spatialOwnerId) % _colors.Length]);
         }

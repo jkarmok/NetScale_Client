@@ -10,9 +10,9 @@ namespace Scene
     {
         public event Action<NetworkEntity, EntityDto, bool> OnEntityAdded;
         public event Action<NetworkEntity, EntityDto, bool> OnEntityUpdated;
-        public event Action<NetworkEntity> OnEntityRemoved;
+        public event Action<NetworkEntity, bool> OnEntityRemoved;
  
-        private EntityPool _entityPool;
+        private readonly EntityPool _entityPool;
         private readonly Dictionary<ushort, NetworkEntity> _networkEntities = new();
 
         private int _totalSpawns;
@@ -69,16 +69,37 @@ namespace Scene
             var typeId = GetTypeIdFromEntity(ref entityDto);
 
             var networkEntity = _entityPool.GetEntity(typeId, entityDto.Id);
- 
+            TryGetParent(entityDto, out var parent);
+
             networkEntity
                 .SpawnSetup(entityDto.Id, typeId, entityDto.SpartalOwnerId, entityDto.ProxyId, entityDto.TransformState,
                     new Vector3(entityDto.Position.X, entityDto.Position.Y, entityDto.Position.Z),
-                    new Quaternion( entityDto.Rotation.X,  entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W));
+                    new Quaternion( entityDto.Rotation.X,  entityDto.Rotation.Y, entityDto.Rotation.Z, entityDto.Rotation.W), owned, parent);
          
             _networkEntities[entityDto.Id] = networkEntity;
             _totalSpawns++;
             OnEntityAdded?.Invoke(networkEntity, entityDto, owned);
         }
+
+        private bool TryGetParent(EntityDto entityDto, out Transform parent)
+        {
+            if (entityDto.TransformState == TransformState.AttachedToParent)
+            {
+                if (_networkEntities.TryGetValue(entityDto.AttachedTo, out var networkEntity))
+                {
+                    parent = networkEntity.transform;
+                    return true;
+                }
+                else
+                {
+                    Debug.LogWarning($"Parent {entityDto.AttachedTo} not found");
+                }
+            }
+
+            parent = null;
+            return false;
+        }
+
         private void UpdateEntity(ref EntityDto entityDto, bool owned)
         {
             if (_networkEntities.TryGetValue(entityDto.Id, out var networkEntity))
@@ -92,7 +113,7 @@ namespace Scene
             if (_networkEntities.Remove(instanceHash, out var networkEntity))
             {
                 _totalDespawns++;
-                OnEntityRemoved?.Invoke(networkEntity);
+                OnEntityRemoved?.Invoke(networkEntity, networkEntity.IsOwned);
                 _entityPool.ReturnEntity(instanceHash);
             }
         }

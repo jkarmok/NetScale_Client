@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="NotificationRoot" class="inline-notification">
+        <ui:VisualElement class="notification-icon">
+            <ui:Label name="IconText" text="!" style="-unity-text-align: middle-center; color: white; font-size: 12px; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:Label name="NotificationText" class="notification-text" text="Notification message" />
+    </ui:VisualElement>
+</ui:UXML>

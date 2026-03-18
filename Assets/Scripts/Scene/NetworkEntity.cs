@@ -12,7 +12,8 @@ namespace Scene
         public int SpartalOwnerId { get; private set; }
         public int ProxyId { get; private set; }
         public TransformState TransformState { get; private set; }
- 
+        public bool IsOwned { get; private set; }
+        
         private NetworkInterpolator _interpolator;
         private NetworkInterpolatorVisualizer _visualizer;
         
@@ -49,17 +50,30 @@ namespace Scene
         }
 
         public void SpawnSetup(int entityDtoHash, byte typeId, int entityDtoSpartalOwnerId, int entityDtoProxyId,
-            TransformState entityDtoTransformState, Vector3 position, Quaternion rotation)
+            TransformState entityDtoTransformState, Vector3 position, Quaternion rotation, bool owned,
+            Transform parent)
         {
             InstanceHash = entityDtoHash;
             TypeId = typeId;
             SpartalOwnerId = entityDtoSpartalOwnerId;
             ProxyId = entityDtoProxyId;
             TransformState = entityDtoTransformState;
-            
-            transform.position = position;
-            transform.rotation = rotation;
-            
+            IsOwned = owned;
+
+            if (parent != null)
+            {
+                transform.SetParent(parent);
+                transform.localPosition = position;
+                transform.localRotation = rotation;
+                _interpolator.SetCoordinateSpace(true);
+            }
+            else
+            {
+                transform.position = position;
+                transform.rotation = rotation;
+                _interpolator.SetCoordinateSpace(false);
+            }
+ 
             _interpolator.Reset(position, rotation);
             _interpolator.Teleport(position, rotation);
 #if UNITY_EDITOR
@@ -69,7 +83,7 @@ namespace Scene
             }
 #endif
         }
-
+ 
         public void ConfigureForDistance(float distanceToPlayer)
         {
             _interpolator.ConfigureForDistance(distanceToPlayer);

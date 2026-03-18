@@ -8,6 +8,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  - enabled: 1
+    path: Assets/Content/A_piece_of_nature/APieceOfNature.unity
+    guid: 32bbc494e65af324492e1ec9e4c99cba
+  - enabled: 1
+    path: Assets/Content/TestScene/TestScene.unity
+    guid: d103106bdabc7fd459766df1a1c3fadf
+  - enabled: 1
+    path: Assets/Content/TestAnimations/AnimationTest.unity
+    guid: 6e3ccb95c68205d4ea5272a3a9893da0
+  m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
